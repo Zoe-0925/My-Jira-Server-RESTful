@@ -1,0 +1,52 @@
+{
+  "name": "jira-server",
+  "version": "1.0.0",
+  "description": "The server for a simplified Jira web application, currently contains the \"Board\" and \"Roadmap\" page.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js --exec babel-node -e js",
+    "dev": "nodemon index",
+    "test": "jest --config ./jest.config.json",
+    "test:watch": "npm run test -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zoe-0925/My-Jira-Server.git"
+  },
+  "author": "Zoe Shenqiu Zhang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Zoe-0925/My-Jira-Server/issues"
+  },
+  "homepage": "https://github.com/Zoe-0925/My-Jira-Server#readme",
+  "dependencies": {
+    "apollo-server-express": "^2.16.1",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-graphql": "^0.11.0",
+    "express-jwt": "^6.0.0",
+    "express-request-id": "^1.4.1",
+    "graphql": "^15.3.0",
+    "graphql-tag": "^2.11.0",
+    "graphql-tools": "^6.0.15",
+    "helmet": "^3.23.3",
+    "jest": "^26.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.26",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.4",
+    "notarealdb": "^0.2.2",
+    "rxjs": "^6.6.0",
+    "uuid": "^8.3.0",
+    "winston": "^3.3.3",
+    "winston-timer": "^0.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-node6": "^11.0.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1"
+  }
+}
