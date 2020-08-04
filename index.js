@@ -9,9 +9,6 @@ const requestLogger = require("./app/loggers/requestLogger")
 const expressRequestId = require('express-request-id')();
 var winston = require('winston');
 require('winston-timer')(winston);
-/**Run GraphQL Express */
-const apollo = require('./app/graphql');
-const schema = require('./app/graphql/Schema.js');
 const bodyParser = require("body-parser");
 //--------------------------------------
 
@@ -34,7 +31,6 @@ app.use(cors({
   origin: config.corsDomain,
 }));
 
-schema.applyMiddleware({ app })
 
 app.use(requestLogger);
 
