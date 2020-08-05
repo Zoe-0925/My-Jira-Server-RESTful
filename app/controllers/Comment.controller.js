@@ -1,5 +1,5 @@
 const db = require("../models");
-const Label = db.labels
+const Comment = db.comments
 
 const validateId = (req, res) => {
     if (!req.params.id) {
@@ -12,103 +12,109 @@ const validateId = (req, res) => {
 
 exports.create = async (req, res) => {
     // Validate request
-    if (!req.body.name || !req.body.project) {
+    if (!req.body.author || !req.body.project || !req.body.description ||!req.body.issue) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
 
-    // Create a label
+    // Create a comment
     const id = mongoose.Types.ObjectId();
-    const label = new Label({
+    const comment = new Comment({
         _id: id,
-        name: req.body.name,
-        project: req.body.project
+        project: req.body.project,
+        author: req.body.author,
+        description: req.body.description,
+        date: new Date(),
+        issue: req.body.issue,
+        parent: req.body.parent||""
     });
     try {
-        await label.save()
-        res.status(200).send(label);
+        await comment.save()
+        res.status(200).send(comment);
     } catch (err) {
         res.status(500).send({
             message:
-                err|| "Some error occurred while creating the label."
+                err || "Some error occurred while creating the comment."
         });
     }
 }
 
-// Retrieve all labels involving a particular user
+// Retrieve all comments involving a particular user
 exports.findAll = (req, res) => {
-    Label.find().then(data => { res.status(200).send(data); })
+    Comment.find().sort({'date': 'ascd'})
+    .then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
-// Retrieve a single label with id
+// Retrieve a single Comment with id
 exports.findOne = (req, res) => {
     validateId(req, res);
-    Label.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
+    Comment.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
-// Retrieve all labels in a particular project
+// Retrieve all Comments in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Label.find({ project: req.params.id }).then(data => { res.status(200).end(data); })
+    Comment.find({ project: req.params.id }).sort({'date': 'ascd'})
+    .then(data => { res.status(200).end(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err|| "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Label.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
+    Comment.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
-// Delete all label
+// Delete all Comment
 exports.deleteAll = (req, res) => {
-    Label.deleteMany()
+    Comment.deleteMany()
         .then(() => {
             res.status(200).send("Successful");
         })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while deleting label. "
+                    err || "Some error occurred while deleting Comment. "
             });
         });
 }
 
 
-// Retrieve all labels involving a particular user
+// Retrieve all Comments involving a particular user
 exports.deleteById = (req, res) => {
     validateId(req, res);
-    Label.findByIdAndDelete(req.params.id)
+    Comment.findByIdAndDelete(req.params.id)
         .then(data => {
             res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while deleting label."
+                    err || "Some error occurred while deleting Comment."
             });
         });
 }

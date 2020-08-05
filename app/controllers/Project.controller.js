@@ -1,6 +1,16 @@
 const db = require("../models");
 const Project = db.projects
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
+
+const validateId = (req, res) => {
+    if (!req.params.id) {
+        res.status(200).send({
+            message: "The content body can not be empty."
+        });
+        return;
+    }
+}
 
 // Create and Save a new Tutorial
 exports.create = async (req, res) => {
@@ -13,7 +23,9 @@ exports.create = async (req, res) => {
     }
 
     // Create a project
+    const id = mongoose.Types.ObjectId();
     const project = new Project({
+        _id:id,
         name: req.body.name,
         key: uuidv4(),
         category: req.body.category || "",
@@ -33,8 +45,15 @@ exports.create = async (req, res) => {
     }
 }
 
+exports.findAll = (req, res) => {
+    Project.find().then(data => {
+        res.send(data);
+    })
+}
+
 // Retrieve all projects involving a particular user
 exports.findByUserId = (req, res) => {
+    validateId(req, res)
     Project.find({ members: req.params.id })
         .then(data => {
             res.send(data);
@@ -49,6 +68,7 @@ exports.findByUserId = (req, res) => {
 
 // Retrieve a single project with id
 exports.findOne = (req, res) => {
+    validateId(req, res)
     Project.find({ key: req.params.id })
         .then(data => {
             res.send(data);
@@ -63,6 +83,7 @@ exports.findOne = (req, res) => {
 
 // Update a project by id from the database.
 exports.update = async (req, res) => {
+    validateId(req, res)
     try {
         const project = await Project.findByIdAndUpdate(req.params.id, req.body)
         await project.save({
@@ -78,11 +99,20 @@ exports.update = async (req, res) => {
 
 // Remove a member from a project by id.
 exports.removeMember = async (req, res) => {
+    // Validate request
+    if (!req.params.id || !req.params.userId) {
+        res.status(200).send({
+            message: "The content body can not be empty."
+        });
+        return;
+    }
     try {
-        const project = await Project.findById(req.params.projectId, req.body)
-
+        const project = await Project.findById(req.params.id, req.body)
+        //If the member to be deleted is also the project lead, delete the project lead as well.
+        if (req.params.userId === project.c) {
+            project.lead = ""
+        }
         project.members.filter(req.params.userId)
-
         await project.save({
             message: "Project was updated successfully."
         })
@@ -110,6 +140,20 @@ exports.delete = async (req, res) => {
     } catch (err) {
         res.status(500).send({
             message: "Could not delete Project with id=" + id
+        })
+    }
+}
+
+exports.deleteAll = async (req, res) => {
+    try {
+        const project = await Project.deleteMany()
+        if (!project) res.status(404).send("No item found")
+        res.status(200).send({
+            message: "Projects were all deleted successfully!"
+        })
+    } catch (err) {
+        res.status(500).send({
+            message: "Could not delete Projects"
         })
     }
 }

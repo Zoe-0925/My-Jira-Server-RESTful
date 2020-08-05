@@ -2,9 +2,9 @@ module.exports = (Schema,model) => {
     var StatusSchema = new Schema({  
          _id:String,
         name: String,
-        user:{
+        project:{
             type: Schema.Types.ObjectId,
-            ref: "User"
+            ref: "Project"
         },
     });
 

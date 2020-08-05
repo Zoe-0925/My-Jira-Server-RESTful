@@ -1,19 +1,39 @@
 const db = require("../models");
 const Issue = db.issues
-const { v4: uuidv4 } = require('uuid');
 
-// Create and Save a new Tutorial
-exports.create = async (req, res) => {
-    // Validate request
-    if (!req.body.summary || !req.body.issueType) {
+const validateIssue = (req, res) => {
+    if (!req.body.project || !req.body.issueType || !req.body.summary) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
+}
 
+const validateId = (req, res) => {
+    if (!req.params.id) {
+        res.status(200).send({
+            message: "The content body can not be empty."
+        });
+        return;
+    }
+}
+
+const validateIdAndType = (req, res) => {
+    if (!req.params.id || !req.params.type) {
+        res.status(200).send({
+            message: "The content body can not be empty."
+        });
+        return;
+    }
+}
+
+exports.createCustomIssue = async (req, res) => {
+    validateIssue(req, res)
     // Create an issue
+    const id = mongoose.Types.ObjectId();
     const issue = new issue({
+        _id: id,
         project: req.body.project,
         summary: req.body.summary,
         issueType: req.body.issueType,
@@ -22,14 +42,14 @@ exports.create = async (req, res) => {
         assignee: req.body.assignee || "", //TODO query the user id and assign it here?
         labels: req.body.labels || [],
         due_date: req.body.due_date || null,
-        reporter: req.body.reporter || "",  //TODO query the user id and assign it here?
-        parent: req.body.issueType === "Epic" ? "" : (req.body.parent || ""),
-        chilren: req.body.issueType === "Subtask" ? [] : (req.body.chilren || []),
+        reportee: req.body.reportee || "",  //TODO query the user id and assign it here?
+        parent: req.body.parent || null,
+        chilren: req.body.children || [],
         comments: []
     });
     try {
         await issue.save()
-        res.send(issue);
+        res.status(200).send(issue);
     } catch (err) {
         res.status(500).send({
             message:
@@ -38,80 +58,166 @@ exports.create = async (req, res) => {
     }
 }
 
-exports.findAllByProjectId = async (req, res) => {
-    // Validate request
-    if (!req.params.id) {
-        res.status(200).send({
-            message: "The content body can not be empty."
+// Create and Save a new Issue
+exports.create = async (req, res) => {
+    validateIssue(req, res)
+    // Create an issue
+    const id = mongoose.Types.ObjectId();
+    const issue = new issue({
+        _id: id,
+        project: req.body.project,
+        summary: req.body.summary,
+        issueType: req.body.issueType,
+        description: req.body.description || "",
+        status: "Not Started",
+        assignee: req.body.assignee || "", //TODO query the user id and assign it here?
+        labels: req.body.labels || [],
+        due_date: req.body.due_date || null,
+        reportee: req.body.reportee || "",  //TODO query the user id and assign it here?
+        parent: req.body.issueType || null,
+        chilren: req.body.issueType === "Subtask" ? null : [],
+        comments: []
+    });
+    try {
+        await issue.save()
+        res.status(200).send(issue);
+    } catch (err) {
+        res.status(500).send({
+            message:
+                err.message || "Some error occurred while creating the issue."
         });
-        return;
     }
-    Issue.find({ project: req.params.id }).then(data => {
+}
 
-        res.send(data);
+exports.findAll = async (req, res) => {
+    Issue.find().then(data => {
+        res.status(200).send(data);
     })
-
     //TODO Organize the code so that each task is inside epic...
     //Stream processing
-
 }
 
 exports.findById = async (req, res) => {
-    if (!req.params.id) {
+    validateId(req, res);
+    Issue.findById(req.params.id).then(data => {
+        res.status(200).send(data);
+    })
+}
+
+// Retrieve all issues in a project
+exports.findForProject = async (req, res) => {
+    validateId(req, res);
+    Issue.find({ project: req.params.id }).then(data => {
+        res.status(200).send(data);
+    })
+}
+
+// Retrieve all issues involving a particular assignee
+exports.findByAssignee = async (req, res) => {
+    validateId(req, res);
+    Issue.find({ assignee: req.params.id }).then(data => {
+        res.status(200).send(data);
+    })
+}
+
+// Retrieve all issues involving a particular reportee
+exports.findByReportee = async (req, res) => {
+    validateId(req, res);
+    Issue.find({ reportee: req.params.id }).then(data => {
+        res.status(200).send(data);
+    })
+}
+
+exports.findByType = async (req, res) => {
+    if (req.params.type) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
+    Issue.findById({ issueType: req.params.type }).then(data => {
+        res.status(200).send(data);
+    })
+}
+
+// Retrieve all issues of a particular issue type in a project
+exports.findByTypeForProject = async (req, res) => {
+    validateIdAndType(req, res);
+    Issue.findById({ project: req.params.id, issueType: req.params.type })
+        .then(data => {
+            res.status(200).send(data);
+        })
+}
+
+// Retrieve all issues of a particular issue type and assignee id 
+exports.findByTypeAndAssignee = async (req, res) => {
+    validateIdAndType(req, res);
+    Issue.findById({ assignee: req.params.id, issueType: req.params.type })
+        .then(data => {
+            res.status(200).send(data);
+        })
+}
+
+// Retrieve all children
+exports.findChildren = async (req, res) => {
+    validateId(req, res);
     Issue.findById(req.params.id).then(data => {
-        res.send(data);
+        res.status(200).send(data.children);
+    })
+}
+
+// Retrieve the parent
+exports.findParent = async (req, res) => {
+    validateId(req, res);
+    Issue.findById(req.params.id).then(data => {
+        res.status(200).send(data.parent);
     })
 }
 
 exports.update = async (req, res) => {
-    if (!req.params.id) {
-        res.status(200).send({
-            message: "The content body can not be empty."
-        });
-        return;
+    validateId(req, res);
+    try {
+        const project = await Issue.findByIdAndUpdate(req.params.id, req.body)
+        await project.save()
+        res.send("Successful")
+    } catch (err) {
+        res.status(500).send({
+            message: "Error updating Review with id=" + id
+        })
     }
-    const issue = await Issue.findByIdAndUpdate(req.params.id, req.body)
-    await issue.save({
-        message: "Issue was updated successfully."
-    })
-    res.send(issue)
 }
 
 exports.delete = async (req, res) => {
-
-    if (!req.params.id) {
-        res.status(200).send({
-            message: "The content body can not be empty."
-        });
-        return;
+    validateId(req, res);
+}
+try {
+    const issue = await Issue.findById(req.params.id)
+    if (!issue) res.status(404).send("No item found")
+    else {
+        res.status(200).send("Successful")
     }
+} catch (err) {
+    res.status(500).send({
+        message: "Could not delete issue with id=" + id + ". Error: " + err
+    })
+}
+
+exports.deleteAll = async (req, res) => {
+    validateId(req, res);
     try {
-        const issue = await Issue.findById(req.params.id)
-        if (!issue) res.status(404).send("No item found")
-
-        //TODO
-        //If the issue has children, send a different status code
-
-        //But I think it returns a cursor object, so the query is not like this
-        if (issue.children.length > 0 && !req.params.force) {
-            res.status(500).send({
-                message: "This issue has chilren remained!"
-            })
-        }
-        else {
-            res.status(200).send({
-                message: "issue was deleted successfully!"
-            })
-        }
-    } catch (err) {
-        res.status(500).send({
-            message: "Could not delete issue with id=" + id
+        await Issue.deleteMany()
+        res.status(200).send({
+            message: "All issues were deleted successfully!"
         })
     }
-
+    catch (err) {
+        res.status(500).send({
+            message: "Could not delete issues. Error: " + err
+        })
+    }
 }
+
+//TODO only the assignee can delete the issue?
+//Or all team members can delete it???
+//check the authorization
+

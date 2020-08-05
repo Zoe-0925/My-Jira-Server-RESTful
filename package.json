@@ -33,7 +33,6 @@
     "nodemon": "^2.0.4",
     "notarealdb": "^0.2.2",
     "rxjs": "^6.6.0",
-    "uuid": "^8.3.0",
     "winston": "^3.3.3",
     "winston-timer": "^0.1.0"
   },

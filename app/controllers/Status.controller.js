@@ -1,5 +1,5 @@
 const db = require("../models");
-const Label = db.labels
+const Status = db.status
 
 const validateId = (req, res) => {
     if (!req.params.id) {
@@ -19,96 +19,96 @@ exports.create = async (req, res) => {
         return;
     }
 
-    // Create a label
+    // Create a status
     const id = mongoose.Types.ObjectId();
-    const label = new Label({
+    const status = new Status({
         _id: id,
         name: req.body.name,
         project: req.body.project
     });
     try {
-        await label.save()
-        res.status(200).send(label);
+        await status.save()
+        res.status(200).send(status);
     } catch (err) {
         res.status(500).send({
             message:
-                err|| "Some error occurred while creating the label."
+                err || "Some error occurred while creating the status."
         });
     }
 }
 
-// Retrieve all labels involving a particular user
+// Retrieve all statuss involving a particular user
 exports.findAll = (req, res) => {
-    Label.find().then(data => { res.status(200).send(data); })
+    Status.find().then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Statuss."
             });
         });
 }
 
-// Retrieve a single label with id
+// Retrieve a single Status with id
 exports.findOne = (req, res) => {
     validateId(req, res);
-    Label.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
+    Status.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Statuss."
             });
         });
 }
 
-// Retrieve all labels in a particular project
+// Retrieve all Statuss in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Label.find({ project: req.params.id }).then(data => { res.status(200).end(data); })
+    Status.find({ project: req.params.id }).then(data => { res.status(200).end(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err|| "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Statuss."
             });
         });
 }
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Label.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
+    Status.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving Statuss."
             });
         });
 }
 
-// Delete all label
+// Delete all Status
 exports.deleteAll = (req, res) => {
-    Label.deleteMany()
+    Status.deleteMany()
         .then(() => {
             res.status(200).send("Successful");
         })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while deleting label. "
+                    err || "Some error occurred while deleting Status. "
             });
         });
 }
 
 
-// Retrieve all labels involving a particular user
+// Retrieve all Statuss involving a particular user
 exports.deleteById = (req, res) => {
     validateId(req, res);
-    Label.findByIdAndDelete(req.params.id)
+    Status.findByIdAndDelete(req.params.id)
         .then(data => {
             res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err || "Some error occurred while deleting label."
+                    err || "Some error occurred while deleting Status."
             });
         });
 }

@@ -26,7 +26,7 @@ module.exports = (Schema, model) => {
         }],
         startDate: Date,
         dueDate: Date,
-        reporter: [{
+        reportee: [{
             type: Schema.Types.ObjectId,
             ref: "User"
         }],

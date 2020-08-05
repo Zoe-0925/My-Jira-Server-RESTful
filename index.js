@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const config = require("./app/config")
+const helmet = require("helmet");
 //** mongodb ORM and Database  */
 const mongoose = require('mongoose');
 /**-----------------Loggers------------ */
@@ -23,35 +24,33 @@ app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//require("./app/routes/Project.routes")(app);
-
 app.use(expressRequestId);
 
 app.use(cors({
   origin: config.corsDomain,
 }));
 
+app.use(helmet()); //security
 
 app.use(requestLogger);
 
 //Add 404 not found 
-app.use((req, res) => {
-  return res.status(404).render("404", {
-    title: "404"
-  });
+app.use((err, req, res, next) => {
+  return res.status(404).json({ error: err })
 });
 
-//Prevent displaying the error trace to the user
-app.use((error, req, res, next) => {
-  if (res.headerSent) {
-    return next(error)
-  }
-  console.error(error)
-  return res.status(500).render("500", {
-    title: "500"
-  });
-});
+//Database Connection
+mongoose.Promise = global.Promise;
+var db = mongoose.connection;
+if (!db)
+  console.log("Error connecting db")
+else
+  console.log("Db connected successfully")
 
+//Routes
+//TODO login route
+require("./app/routes/Project.routes")(app);
+require("./app/routes/User.routes")(app);
 
 
 // set port, listen for requests
@@ -59,20 +58,6 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT).on("listening", () => {
   logger.info(`Server is running on port ${PORT}.`);
 });
-
-// Endpoint to check if the API is running
-app.get('/api/status', (req, res) => {
-  res.send({ status: 'ok' });
-});
-
-// Append apollo to our API
-apollo(app);
-
-
-//Syntax for winston timer:
-//winston.start_log('long-running-task', 'info'); 
-/* ... */
-//winston.stop_log('long-running-task', 'warn');
 
 
 

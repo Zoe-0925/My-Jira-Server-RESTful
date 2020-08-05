@@ -1,6 +1,6 @@
 module.exports = (Schema, model) => {
     var CommentSchema = new Schema({
-        _id:String,
+        _id: String,
         author: [{
             type: Schema.Types.ObjectId,
             ref: "User"
@@ -10,7 +10,8 @@ module.exports = (Schema, model) => {
         issue: {
             type: Schema.Types.ObjectId,
             ref: "Issue"
-        }
+        },
+        parent: String
     });
 
     return model('Comment', CommentSchema);

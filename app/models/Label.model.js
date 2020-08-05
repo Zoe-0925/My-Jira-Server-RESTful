@@ -2,10 +2,10 @@ module.exports = (Schema,model) => {
     var LabelSchema = new Schema({
         _id:String,
         name: String,
-        userId:{
+        project:{
             type: Schema.Types.ObjectId,
-            ref: "User"
-        },
+            ref: "Project"
+        }
     });
 
     return  model('Label', LabelSchema);
