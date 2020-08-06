@@ -80,7 +80,21 @@ exports.findOne = (req, res) => {
 exports.findOneByEmail = (req, res) => {
     User.find({ email: req.params.email })
         .then(data => {
-            return res.send(data);
+            return res.status(200).send(data);
+        })
+        .catch(err => {
+            return res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving Users."
+            });
+        });
+}
+
+// Retrieve a single User with id
+exports.checkEmailExist = (req, res) => {
+    User.find({ email: req.params.email })
+        .then(data => {
+            return res.status(200).send({ result: data.email ? true : false });
         })
         .catch(err => {
             return res.status(500).send({
@@ -92,32 +106,32 @@ exports.findOneByEmail = (req, res) => {
 
 // Update a User by id from the database.
 exports.update = async (req, res) => {
-    if(!req.body.id || !req.body.name){
+    if (!req.body.id || !req.body.name) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
     try {
-        await User.findOneAndUpdate({ _id: req.body.id }, {name:req.body.name})
+        await User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
         res.status(200).send("Updated Successful");
     } catch (err) {
         return res.status(500).send({
-            message: "Error updating User with id=" + req.body.id +", errors: "+err 
+            message: "Error updating User with id=" + req.body.id + ", errors: " + err
         })
     }
 }
 
 // Update a User by id from the database.
 exports.updatePassword = async (req, res) => {
-    if(!req.body.id || !req.body.password){
+    if (!req.body.id || !req.body.password) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
     try {
-        await User.findOneAndUpdate({ _id: req.body.id }, {password:req.body.password})
+        await User.findOneAndUpdate({ _id: req.body.id }, { password: req.body.password })
         res.status(200).send("Updated Successful");
     } catch (err) {
         return res.status(500).send({
@@ -128,14 +142,14 @@ exports.updatePassword = async (req, res) => {
 
 // Update a User by id from the database.
 exports.updateEmail = async (req, res) => {
-    if(!req.body.id || !req.body.email){
+    if (!req.body.id || !req.body.email) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
         return;
     }
     try {
-        await User.findOneAndUpdate({ _id: req.body.id }, {email:req.body.email})
+        await User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
         res.status(200).send("Updated Successful");
     } catch (err) {
         return res.status(500).send({
