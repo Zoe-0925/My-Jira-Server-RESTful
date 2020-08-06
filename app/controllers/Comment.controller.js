@@ -32,7 +32,7 @@ exports.create = async (req, res) => {
     });
     try {
         await comment.save()
-        res.status(200).send(comment);
+        res.status(200).send({ success: true, id: comment._id });
     } catch (err) {
         res.status(500).send({
             message:
@@ -69,7 +69,7 @@ exports.findOne = (req, res) => {
 exports.findByProject = (req, res) => {
     validateId(req, res);
     Comment.find({ project: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).end(data); })
+    .then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -82,7 +82,7 @@ exports.findByProject = (req, res) => {
 exports.findForIssue = (req, res) => {
     validateId(req, res);
     Comment.find({ issue: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).end(data); })
+    .then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -94,7 +94,7 @@ exports.findForIssue = (req, res) => {
 exports.findChildren = (req, res) => {
     validateId(req, res);
     Comment.find({ parent: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).end(data); })
+    .then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -105,7 +105,7 @@ exports.findChildren = (req, res) => {
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Comment.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
+    Comment.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send({ success: true }); })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -118,7 +118,7 @@ exports.update = (req, res) => {
 exports.deleteAll = (req, res) => {
     Comment.deleteMany()
         .then(() => {
-            res.status(200).send("Successful");
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({
@@ -134,7 +134,7 @@ exports.delete = (req, res) => {
     validateId(req, res);
     Comment.findByIdAndDelete(req.params.id)
         .then(data => {
-            res.status(200).send(data);
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({
@@ -147,7 +147,7 @@ exports.delete = (req, res) => {
 exports.deleteByIssue = (req, res) => {
     Comment.deleteMany({issue:req.params.id})
         .then(() => {
-            res.status(200).send("Successful");
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({

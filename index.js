@@ -14,7 +14,7 @@ require('winston-timer')(winston);
 const helmet = require("helmet");
 //--------------------------------------
 
-mongoose.connect(`mongodb+srv://${process.env.USERNAME}:<${process.env.PASSWORD}>@cluster0-8vkls.mongodb.net/test?retryWrites=true&w=majority`, {
+mongoose.connect(`mongodb+srv://${process.env.USERNAME}:<${process.env.PASSWORD}>@cluster0-8vkls.mongodb.net/Jira?retryWrites=true&w=majority`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -42,7 +42,6 @@ app.use((err, req, res, next) => {
 });
 
 //Database Connection
-mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 if (!db)
   console.log("Error connecting db")
@@ -58,15 +57,11 @@ require("./app/routes/Comment.routes")(app);
 require("./app/routes/Issue.routes")(app);
 require("./app/PassportAuthentication")(app);
 
-
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, '../client/build')));
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
   });
-}
-
-if (process.env.NODE_ENV === "production") {
   const privateKey = fs.readFileSync('/etc/letsencrypt/live/learnpassportjs.com/privkey.pem', 'utf8');
   const certificate = fs.readFileSync('/etc/letsencrypt/live/learnpassportjs.com/cert.pem', 'utf8');
   const ca = fs.readFileSync('/etc/letsencrypt/live/learnpassportjs.com/chain.pem', 'utf8');

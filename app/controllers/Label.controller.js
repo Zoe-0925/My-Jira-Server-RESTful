@@ -28,11 +28,11 @@ exports.create = async (req, res) => {
     });
     try {
         await label.save()
-        res.status(200).send(label);
+        res.status(200).send({ success: true, id: label._id });
     } catch (err) {
         res.status(500).send({
             message:
-                err|| "Some error occurred while creating the label."
+                err || "Some error occurred while creating the label."
         });
     }
 }
@@ -63,18 +63,20 @@ exports.findOne = (req, res) => {
 // Retrieve all labels in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Label.find({ project: req.params.id }).then(data => { res.status(200).end(data); })
+    Label.find({ project: req.params.id }).then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err|| "Some error occurred while retrieving labels."
+                    err || "Some error occurred while retrieving labels."
             });
         });
 }
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Label.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
+    Label.findByIdAndUpdate(req.params.id).then(data => {
+        res.status(200).send({ success: true });
+    })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -87,7 +89,7 @@ exports.update = (req, res) => {
 exports.deleteAll = (req, res) => {
     Label.deleteMany()
         .then(() => {
-            res.status(200).send("Successful");
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({
@@ -103,7 +105,7 @@ exports.delete = (req, res) => {
     validateId(req, res);
     Label.findByIdAndDelete(req.params.id)
         .then(data => {
-            res.status(200).send(data);
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({

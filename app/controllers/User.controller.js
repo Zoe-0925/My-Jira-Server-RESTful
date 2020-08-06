@@ -45,7 +45,7 @@ exports.addProject = async (req, res) => {
     user.projects.push(req.body.projectId)
     try {
         await user.save()
-        return res.send(user);
+        return res.status(200).send(user);
     } catch (err) {
         return res.status(500).send({
             message:
@@ -66,7 +66,7 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
     User.find({ _id: req.params.id })
         .then(data => {
-            return res.send(data);
+            return res.status(200).send(data);
         })
         .catch(err => {
             return res.status(500).send({
@@ -92,9 +92,9 @@ exports.findOneByEmail = (req, res) => {
 
 // Retrieve a single User with id
 exports.checkEmailExist = (req, res) => {
-    User.find({ email: req.params.email })
+    User.find({ email: req.body.email })
         .then(data => {
-            return res.status(200).send({ result: data.email ? true : false });
+            return res.status(200).send(data.email ? { success: true } : { failure: true });
         })
         .catch(err => {
             return res.status(500).send({
@@ -114,7 +114,7 @@ exports.update = async (req, res) => {
     }
     try {
         await User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
-        res.status(200).send("Updated Successful");
+        res.status(200).send({ success: true });
     } catch (err) {
         return res.status(500).send({
             message: "Error updating User with id=" + req.body.id + ", errors: " + err
@@ -132,7 +132,7 @@ exports.updatePassword = async (req, res) => {
     }
     try {
         await User.findOneAndUpdate({ _id: req.body.id }, { password: req.body.password })
-        res.status(200).send("Updated Successful");
+        res.status(200).send({ success: true });
     } catch (err) {
         return res.status(500).send({
             message: "Error updating Review with id=" + req.body.id
@@ -150,7 +150,7 @@ exports.updateEmail = async (req, res) => {
     }
     try {
         await User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
-        res.status(200).send("Updated Successful");
+        res.status(200).send({ success: true });
     } catch (err) {
         return res.status(500).send({
             message: "Error updating Review with id=" + req.body.id
@@ -168,9 +168,7 @@ exports.delete = async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id)
         if (!user) res.status(404).send("No item found")
-        return res.status(200).send({
-            message: "user was deleted successfully!"
-        })
+        return res.status(200).send({ success: true })
     } catch (err) {
         return res.status(500).send({
             message: "Could not delete user with id=" + req.params.id
@@ -182,9 +180,7 @@ exports.deleteAll = async (req, res) => {
     try {
         const user = await User.deleteMany()
         if (!user) res.status(404).send("No item found")
-        return res.status(200).send({
-            message: "users were all deleted successfully!"
-        })
+        return res.status(200).send({ success: true })
     } catch (err) {
         return res.status(500).send({
             message: "Could not delete users"
@@ -197,9 +193,7 @@ exports.deleteByLeadId = async (req, res) => {
     try {
         const user = await User.deleteMany({ lead: req.params.id })
         if (!user) res.status(404).send("No item found")
-        return res.status(200).send({
-            message: "users were deleted successfully!"
-        })
+        return res.status(200).send({ success: true })
     } catch (err) {
         return res.status(500).send({
             message: "Could not delete Users"

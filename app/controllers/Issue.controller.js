@@ -80,7 +80,7 @@ exports.create = async (req, res) => {
     });
     try {
         await issue.save()
-        res.status(200).send(issue);
+        res.status(200).send({ success: true, id: issue._id });
     } catch (err) {
         res.status(500).send({
             message:
@@ -179,7 +179,7 @@ exports.update = async (req, res) => {
     try {
         const project = await Issue.findByIdAndUpdate(req.params.id, req.body)
         await project.save()
-        res.send("Successful")
+        res.status(200).send({ success: true });
     } catch (err) {
         res.status(500).send({
             message: "Error updating Review with id=" + id
@@ -192,9 +192,9 @@ exports.delete = (req, res) => {
     try {
         Issue.findById(req.params.id).then(
             issue => {
-                if (!issue) res.status(404).send("No item found")
+                if (!issue) res.status(404).send({ failure: true })
                 else {
-                    res.status(200).send("Successful")
+                    res.status(200).send({ success: true })
                 }
             }
         )
@@ -209,9 +209,7 @@ exports.deleteAll = async (req, res) => {
     validateId(req, res);
     try {
         await Issue.deleteMany()
-        res.status(200).send({
-            message: "All issues were deleted successfully!"
-        })
+        res.status(200).send({ success: true })
     }
     catch (err) {
         res.status(500).send({

@@ -36,7 +36,7 @@ exports.create = async (req, res) => {
     });
     try {
         await project.save()
-        res.send(project);
+        res.status(200).send({ success: true, id: project._id });
     } catch (err) {
         res.status(500).send({
             message:
@@ -47,7 +47,7 @@ exports.create = async (req, res) => {
 
 exports.findAll = (req, res) => {
     Project.find().then(data => {
-        res.send(data);
+        res.status(200).send(data);
     })
 }
 
@@ -56,7 +56,7 @@ exports.findByUserId = (req, res) => {
     validateId(req, res)
     Project.find({ members: req.params.id })
         .then(data => {
-            res.send(data);
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -71,7 +71,7 @@ exports.findOne = (req, res) => {
     validateId(req, res)
     Project.find({ key: req.params.id })
         .then(data => {
-            res.send(data);
+            res.status(200).send(data);
         })
         .catch(err => {
             res.status(500).send({
@@ -89,7 +89,7 @@ exports.update = async (req, res) => {
         await project.save({
             message: "Project was updated successfully."
         })
-        res.send(project)
+        res.status(200).send({ success: true });
     } catch (err) {
         res.status(500).send({
             message: "Error updating Review with id=" + id
@@ -116,30 +116,26 @@ exports.removeMember = async (req, res) => {
         await project.save({
             message: "Project was updated successfully."
         })
-        res.send(project)
+        res.status(200).send({ success: true })
     } catch (err) {
         res.status(500).send({
-            message: "Error updating Review with id=" + id
+            message: `Could not update Project with id=$(id). Error:$(err) ` 
         })
     }
 }
 
 exports.delete = async (req, res) => {
     if (!req.params.id) {
-        res.status(200).send({
-            message: "The content body can not be empty."
-        });
+        res.status(200).send({ success: true });
         return;
     }
     try {
         const project = await Project.findByIdAndDelete(req.params.id)
         if (!project) res.status(404).send("No item found")
-        res.status(200).send({
-            message: "Project was deleted successfully!"
-        })
+        res.status(200).send({ success: true })
     } catch (err) {
         res.status(500).send({
-            message: "Could not delete Project with id=" + id
+            message: `Could not delete Project with id=$(id). Error:$(err) ` 
         })
     }
 }
@@ -148,9 +144,7 @@ exports.deleteAll = async (req, res) => {
     try {
         const project = await Project.deleteMany()
         if (!project) res.status(404).send("No item found")
-        res.status(200).send({
-            message: "Projects were all deleted successfully!"
-        })
+        res.status(200).send({ success: true })
     } catch (err) {
         res.status(500).send({
             message: "Could not delete Projects"
@@ -163,9 +157,7 @@ exports.deleteByLeadId = async (req, res) => {
     try {
         const project = await Project.deleteMany({ lead: req.params.id })
         if (!project) res.status(404).send("No item found")
-        res.status(200).send({
-            message: "Projects were deleted successfully!"
-        })
+        res.status(200).send({ success: true })
     } catch (err) {
         res.status(500).send({
             message: "Could not delete Projects"

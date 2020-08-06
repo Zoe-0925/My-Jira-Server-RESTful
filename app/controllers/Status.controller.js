@@ -28,7 +28,7 @@ exports.create = async (req, res) => {
     });
     try {
         await status.save()
-        res.status(200).send(status);
+        res.status(200).send({ success: true, id: status._id });
     } catch (err) {
         res.status(500).send({
             message:
@@ -63,7 +63,7 @@ exports.findOne = (req, res) => {
 // Retrieve all Statuss in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Status.find({ project: req.params.id }).then(data => { res.status(200).end(data); })
+    Status.find({ project: req.params.id }).then(data => { res.status(200).send(data); })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -74,7 +74,9 @@ exports.findByProject = (req, res) => {
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Status.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
+    Status.findByIdAndUpdate(req.params.id).then(data => {
+        res.status(200).send({ success: true });
+    })
         .catch(err => {
             res.status(500).send({
                 message:
@@ -87,7 +89,7 @@ exports.update = (req, res) => {
 exports.deleteAll = (req, res) => {
     Status.deleteMany()
         .then(() => {
-            res.status(200).send("Successful");
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({
@@ -103,7 +105,7 @@ exports.delete = (req, res) => {
     validateId(req, res);
     Status.findByIdAndDelete(req.params.id)
         .then(data => {
-            res.status(200).send(data);
+            res.status(200).send({ success: true });
         })
         .catch(err => {
             res.status(500).send({
