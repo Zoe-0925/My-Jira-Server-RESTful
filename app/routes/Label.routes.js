@@ -9,10 +9,7 @@ module.exports = app => {
     router.get("/", labels.findAll);
 
     // Retrieve all labels in a particular project
-    router.get("/", labels.findByProject);
-
-    // Retrieve all labels in a project
-    router.get("/project/:id/", labels.findForProject);
+    router.get("/project/:id/", labels.findByProject);
 
     // Retrieve a single label with id
     router.get("/:id", labels.findOne);

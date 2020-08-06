@@ -23,8 +23,11 @@ module.exports = app => {
     // Delete a comment with id
     router.delete("/:id", comments.delete);
 
+     // Delete all comments
+     router.delete("/all", comments.deleteAll);
+
     // Delete all comments of an issue
-    router.delete("/all", comments.deleteByIssue);
+    router.delete("/issue/:id", comments.deleteByIssue);
 
     app.use('/api/comments', router);
 }

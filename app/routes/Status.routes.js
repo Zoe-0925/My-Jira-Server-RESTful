@@ -9,10 +9,7 @@ module.exports = app => {
     router.get("/", status.findAll);
 
     // Retrieve all status in a particular project
-    router.get("/", status.findByProject);
-
-    // Retrieve all status in a project
-    router.get("/project/:id/", status.findForProject);
+    router.get("/project/:id/", status.findByProject);
 
     // Retrieve a single status with id
     router.get("/:id", status.findOne);

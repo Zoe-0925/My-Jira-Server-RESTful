@@ -99,7 +99,7 @@ exports.deleteAll = (req, res) => {
 
 
 // Retrieve all labels involving a particular user
-exports.deleteById = (req, res) => {
+exports.delete = (req, res) => {
     validateId(req, res);
     Label.findByIdAndDelete(req.params.id)
         .then(data => {

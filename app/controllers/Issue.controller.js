@@ -97,7 +97,7 @@ exports.findAll = async (req, res) => {
     //Stream processing
 }
 
-exports.findById = async (req, res) => {
+exports.findOne = async (req, res) => {
     validateId(req, res);
     Issue.findById(req.params.id).then(data => {
         res.status(200).send(data);
@@ -187,19 +187,22 @@ exports.update = async (req, res) => {
     }
 }
 
-exports.delete = async (req, res) => {
+exports.delete = (req, res) => {
     validateId(req, res);
-}
-try {
-    const issue = await Issue.findById(req.params.id)
-    if (!issue) res.status(404).send("No item found")
-    else {
-        res.status(200).send("Successful")
+    try {
+        Issue.findById(req.params.id).then(
+            issue => {
+                if (!issue) res.status(404).send("No item found")
+                else {
+                    res.status(200).send("Successful")
+                }
+            }
+        )
+    } catch (err) {
+        res.status(500).send({
+            message: "Could not delete issue with id=" + id + ". Error: " + err
+        })
     }
-} catch (err) {
-    res.status(500).send({
-        message: "Could not delete issue with id=" + id + ". Error: " + err
-    })
 }
 
 exports.deleteAll = async (req, res) => {

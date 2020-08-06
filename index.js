@@ -19,8 +19,6 @@ mongoose.connect(`mongodb+srv://${process.env.USERNAME}:<${process.env.PASSWORD}
   useUnifiedTopology: true
 });
 
-require("./app/PassportAuthentication")(app);
-
 const app = express();
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -32,6 +30,7 @@ app.use(expressRequestId);
 app.use(cors({
   origin: config.corsDomain,
 }));
+
 
 app.use(helmet()); //security
 
@@ -57,6 +56,8 @@ require("./app/routes/Label.routes")(app);
 require("./app/routes/Status.routes")(app);
 require("./app/routes/Comment.routes")(app);
 require("./app/routes/Issue.routes")(app);
+require("./app/PassportAuthentication")(app);
+
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, '../client/build')));

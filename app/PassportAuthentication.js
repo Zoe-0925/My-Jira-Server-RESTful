@@ -5,7 +5,7 @@ const https = require('https');
 const passport = require("passport");
 const GithubStrategy = require("passport-github").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const keys = require("../AUthenticationConfig");
+const keys = require("./AuthenticationConfig");
 const chalk = require("chalk");
 
 module.exports = app => {
@@ -18,18 +18,6 @@ module.exports = app => {
     passport.deserializeUser((user, cb) => {
         cb(null, user);
     });
-
-    // Amazon Strategy
-    passport.use(new AmazonStrategy({
-        clientID: keys.AMAZON.clientID,
-        clientSecret: keys.AMAZON.clientSecret,
-        callbackURL: "/auth/amazon/callback"
-    },
-        (accessToken, refreshToken, profile, cb) => {
-            console.log(chalk.blue(JSON.stringify(profile)));
-            user = { ...profile };
-            return cb(null, profile);
-        }));
 
     // Github Strategy
     passport.use(new GithubStrategy({

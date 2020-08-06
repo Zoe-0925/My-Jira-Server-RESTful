@@ -78,6 +78,31 @@ exports.findByProject = (req, res) => {
         });
 }
 
+// Retrieve all Comments in a particular project
+exports.findForIssue = (req, res) => {
+    validateId(req, res);
+    Comment.find({ issue: req.params.id }).sort({'date': 'ascd'})
+    .then(data => { res.status(200).end(data); })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err || "Some error occurred while retrieving Comments."
+            });
+        });
+}
+
+exports.findChildren = (req, res) => {
+    validateId(req, res);
+    Comment.find({ parent: req.params.id }).sort({'date': 'ascd'})
+    .then(data => { res.status(200).end(data); })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err || "Some error occurred while retrieving Comments."
+            });
+        });
+}
+
 exports.update = (req, res) => {
     validateId(req, res);
     Comment.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send("Successful"); })
@@ -105,7 +130,7 @@ exports.deleteAll = (req, res) => {
 
 
 // Retrieve all Comments involving a particular user
-exports.deleteById = (req, res) => {
+exports.delete = (req, res) => {
     validateId(req, res);
     Comment.findByIdAndDelete(req.params.id)
         .then(data => {
@@ -119,4 +144,15 @@ exports.deleteById = (req, res) => {
         });
 }
 
-
+exports.deleteByIssue = (req, res) => {
+    Comment.deleteMany({issue:req.params.id})
+        .then(() => {
+            res.status(200).send("Successful");
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err || "Some error occurred while deleting Comment. "
+            });
+        });
+}
