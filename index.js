@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const config = require("./app/config")
 const bodyParser = require("body-parser");
+require('dotenv').config()  //Enable access to the ".env" file
 //** mongodb ORM and Database  */
 const mongoose = require('mongoose');
 /**-----------------Loggers------------ */
@@ -11,6 +12,7 @@ const expressRequestId = require('express-request-id')();
 var winston = require('winston');
 require('winston-timer')(winston);
 /**-------------Security and Authentication------ */
+const session = require('express-session')
 const helmet = require("helmet");
 //--------------------------------------
 
@@ -20,6 +22,7 @@ mongoose.connect(`mongodb+srv://${process.env.USERNAME}:<${process.env.PASSWORD}
 });
 
 const app = express();
+
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
@@ -55,7 +58,8 @@ require("./app/routes/Label.routes")(app);
 require("./app/routes/Status.routes")(app);
 require("./app/routes/Comment.routes")(app);
 require("./app/routes/Issue.routes")(app);
-require("./app/PassportAuthentication")(app);
+require("./app/Authentication/ThirdPartyPassport")(app);
+
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, '../client/build')));

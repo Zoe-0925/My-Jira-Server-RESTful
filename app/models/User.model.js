@@ -1,9 +1,10 @@
 module.exports = (Schema, model) => {
     var UserSchema = new Schema({
-        _id:String,
+        _id: String,
         name: String,
         email: String,
-        password: String,
+        hash: String,
+        salt: String,
         projects: [{
             type: Schema.Types.ObjectId,
             ref: "Project"

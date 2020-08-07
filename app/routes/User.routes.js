@@ -2,8 +2,19 @@ module.exports = app => {
     const users = require("../controllers/User.controller.js");
     var router = require("express").Router();
 
-    // Create a new user
+    // Create a new user => Only used for testing and mock data
     router.post("/", users.create);
+
+    router.post("/login", users.login);
+
+    router.post("/signup", users.signup);
+
+    //TODO
+    //check req.logout()
+    router.get('/logout', (req, res) => {
+        req.logout();
+        res.redirect('/login');
+    });
 
     // Add a project
     router.post("/:id/projects", users.addProject);

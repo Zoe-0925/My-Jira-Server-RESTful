@@ -5,7 +5,7 @@ const https = require('https');
 const passport = require("passport");
 const GithubStrategy = require("passport-github").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const keys = require("./AuthenticationConfig");
+const keys = require("../AuthenticationConfig");
 const chalk = require("chalk");
 
 module.exports = app => {

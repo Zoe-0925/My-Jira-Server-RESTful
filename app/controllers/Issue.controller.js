@@ -192,7 +192,7 @@ exports.delete = (req, res) => {
     try {
         Issue.findById(req.params.id).then(
             issue => {
-                if (!issue) res.status(404).send({ failure: true })
+                if (!issue) res.status(404).send({ success:false })
                 else {
                     res.status(200).send({ success: true })
                 }
