@@ -9,10 +9,10 @@ const utils = require('../helpers');
 exports.create = async (req, res) => {
     // Validate request
     if (!req.body.name) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
     // Create a user
     var id = mongoose.Types.ObjectId();
@@ -31,47 +31,25 @@ exports.create = async (req, res) => {
     });
     try {
         await user.save()
-        return res.send(user);
+        return res.status(200).json({
+            success: true,
+            data: user
+        });
     } catch (err) {
-        return res.status(500).send({
-            message:
-                err.message || "Some error occurred while creating the user."
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Some error occurred while creating the user."
         });
     }
 }
-
-
-exports.addProject = async (req, res) => {
-    // Validate request
-    if (!req.params.id || !req.body.projectId) {
-        res.status(200).send({
-            message: "The content body can not be empty."
-        });
-        return;
-    }
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
-
-        // Insert the project id to the user's projects.
-        let user = await User.find({ _id: req.params.id })
-        user.projects.push(req.body.projectId)
-        try {
-            await user.save()
-            return res.status(200).send(user);
-        } catch (err) {
-            return res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the user."
-            });
-        }
-    }
-}
-
 
 exports.findAll = (req, res) => {
     passport.authenticate('jwt', { session: false }), (req, res, next) => {
-
         User.find().then(data => {
-            return res.send(data);
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
         })
     }
 }
@@ -82,12 +60,15 @@ exports.findOne = (req, res) => {
 
         User.find({ _id: req.params.id })
             .then(data => {
-                return res.status(200).send(data);
+                return res.status(200).json({
+                    success: true,
+                    data: data
+                });
             })
             .catch(err => {
-                return res.status(500).send({
-                    message:
-                        err.message || "Some error occurred while retrieving Users."
+                return res.status(500).json({
+                    success: false,
+                    message: err.message || "Some error occurred while retrieving Users."
                 });
             });
     }
@@ -99,12 +80,15 @@ exports.findOneByEmail = (req, res) => {
 
         User.find({ email: req.params.email })
             .then(data => {
-                return res.status(200).send(data);
+                return res.status(200).json({
+                    success: true,
+                    data: data
+                });
             })
             .catch(err => {
-                return res.status(500).send({
-                    message:
-                        err.message || "Some error occurred while retrieving Users."
+                return res.status(500).json({
+                    success: false,
+                    message: err.message || "Some error occurred while retrieving Users."
                 });
             });
     }
@@ -115,12 +99,12 @@ exports.checkEmailExist = (req, res) => {
 
     User.find({ email: req.body.email })
         .then(data => {
-            return res.status(200).send(data.email ? { success: true } : { success: false });
+            return res.status(200).json(data.email ? { success: true } : { success: false });
         })
         .catch(err => {
-            return res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving Users."
+            return res.status(500).json({
+                success: false,
+                message: err.message || "Some error occurred while retrieving Users."
             });
         });
 }
@@ -130,16 +114,17 @@ exports.update = async (req, res) => {
     passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         if (!req.body.id || !req.body.name) {
-            res.status(200).send({
+            return res.status(200).json({
+                success: false,
                 message: "The content body can not be empty."
             });
-            return;
         }
         try {
             await User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
             res.status(200).send({ success: true });
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Error updating User with id=" + req.body.id + ", errors: " + err
             })
         }
@@ -151,7 +136,8 @@ exports.updatePassword = async (req, res) => {
     passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         if (!req.body.id || !req.body.password) {
-            res.status(200).send({
+            res.status(200).json({
+                success: false,
                 message: "The content body can not be empty."
             });
             return;
@@ -160,7 +146,8 @@ exports.updatePassword = async (req, res) => {
             await User.findOneAndUpdate({ _id: req.body.id }, { password: req.body.password })
             res.status(200).send({ success: true });
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Error updating Review with id=" + req.body.id
             })
         }
@@ -172,16 +159,17 @@ exports.updateEmail = async (req, res) => {
     passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         if (!req.body.id || !req.body.email) {
-            res.status(200).send({
+            return res.status(200).json({
+                success: false,
                 message: "The content body can not be empty."
             });
-            return;
         }
         try {
             await User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
-            res.status(200).send({ success: true });
+            return res.status(200).json({ success: true });
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Error updating Review with id=" + req.body.id
             })
         }
@@ -192,7 +180,8 @@ exports.delete = async (req, res) => {
     passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         if (!req.params.id) {
-            res.status(200).send({
+            return res.status(200).json({
+                success: false,
                 message: "The content body can not be empty."
             });
             return;
@@ -200,9 +189,10 @@ exports.delete = async (req, res) => {
         try {
             const user = await User.findByIdAndDelete(req.params.id)
             if (!user) res.status(404).send("No item found")
-            return res.status(200).send({ success: true })
+            return res.status(200).json({ success: true })
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Could not delete user with id=" + req.params.id
             })
         }
@@ -214,16 +204,19 @@ exports.deleteAll = async (req, res) => {
 
         try {
             const user = await User.deleteMany()
-            if (!user) res.status(404).send("No item found")
-            return res.status(200).send({ success: true })
+            if (!user) res.status(404).json({
+                success: false,
+                message: "No item found"
+            })
+            return res.status(200).json({ success: true })
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Could not delete users"
             })
         }
     }
 }
-
 
 // Delete all users of a particular lead from the database.
 exports.deleteByLeadId = async (req, res) => {
@@ -232,15 +225,15 @@ exports.deleteByLeadId = async (req, res) => {
         try {
             const user = await User.deleteMany({ lead: req.params.id })
             if (!user) res.status(404).send("No item found")
-            return res.status(200).send({ success: true })
+            return res.status(200).json({ success: true })
         } catch (err) {
-            return res.status(500).send({
+            return res.status(500).json({
+                success: false,
                 message: "Could not delete Users"
             })
         }
     }
 };
-
 
 exports.login = async (req, res, next) => {
     User.findOne({ email: req.body.email })
@@ -253,9 +246,9 @@ exports.login = async (req, res, next) => {
 
             if (isValid) {
                 const tokenObject = utils.issueJWT(user);
-                res.status(200).json({ success: true, token: tokenObject.token, expiresIn: tokenObject.expires });
+                return res.status(200).json({ success: true, token: tokenObject.token, expiresIn: tokenObject.expires });
             } else {
-                res.status(401).json({ success: false, msg: "you entered the wrong password" });
+                return res.status(401).json({ success: false, msg: "you entered the wrong password" });
             }
         })
         .catch((err) => {
@@ -266,6 +259,13 @@ exports.login = async (req, res, next) => {
 
 
 exports.signup = async (req, res) => {
+    User.findOne({ email: req.body.email })
+        .then((user) => {
+            if (user) {
+                return res.json({ success: false, message: "This email address is already registered." });
+            }
+        })
+
     const saltHash = utils.genPassword(req.body.password);
 
     const salt = saltHash.salt;
@@ -282,9 +282,9 @@ exports.signup = async (req, res) => {
     });
     try {
         await user.save()
-        res.json({ success: true, user: user });
+        return res.json({ success: true, user: user });
     } catch (err) {
-        res.json({ success: false, msg: err });
+        return res.json({ success: false, msg: err });
     }
 };
 

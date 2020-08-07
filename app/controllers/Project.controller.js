@@ -1,14 +1,15 @@
 const db = require("../models");
 const Project = db.projects
+const User = db.users
 const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose');
 
 const validateId = (req, res) => {
     if (!req.params.id) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 }
 
@@ -16,16 +17,16 @@ const validateId = (req, res) => {
 exports.create = async (req, res) => {
     // Validate request
     if (!req.body.name) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 
     // Create a project
     const id = mongoose.Types.ObjectId();
     const project = new Project({
-        _id:id,
+        _id: id,
         name: req.body.name,
         key: uuidv4(),
         category: req.body.category || "",
@@ -35,19 +36,22 @@ exports.create = async (req, res) => {
         default_assignee: "Project Lead",
     });
     try {
+        let user = await User.find({ _id: userId })
+        user.projects.push(projectId)
         await project.save()
-        res.status(200).send({ success: true, id: project._id });
+        await user.save()
+        return res.status(200).json({ success: true, id: projectId });
     } catch (err) {
-        res.status(500).send({
-            message:
-                err.message || "Some error occurred while creating the Project."
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Some error occurred while creating the Project."
         });
     }
 }
 
 exports.findAll = (req, res) => {
     Project.find().then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({ success: true, data: data });
     })
 }
 
@@ -56,12 +60,12 @@ exports.findByUserId = (req, res) => {
     validateId(req, res)
     Project.find({ members: req.params.id })
         .then(data => {
-            res.status(200).send(data);
+            return res.status(200).json({ success: true, data: data });
         })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving projects."
+            return res.status(500).json({
+                success: false,
+                message: err.message || "Some error occurred while retrieving projects."
             });
         });
 }
@@ -71,12 +75,11 @@ exports.findOne = (req, res) => {
     validateId(req, res)
     Project.find({ key: req.params.id })
         .then(data => {
-            res.status(200).send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving projects."
+            return res.status(200).json({ success: true, data: data });
+        }).catch(err => {
+            return res.status(500).json({
+                success: false,
+                message: err.message || "Some error occurred while retrieving projects."
             });
         });
 }
@@ -89,9 +92,10 @@ exports.update = async (req, res) => {
         await project.save({
             message: "Project was updated successfully."
         })
-        res.status(200).send({ success: true });
+        return res.status(200).json({ success: true });
     } catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Error updating Review with id=" + id
         })
     }
@@ -101,10 +105,10 @@ exports.update = async (req, res) => {
 exports.removeMember = async (req, res) => {
     // Validate request
     if (!req.params.id || !req.params.userId) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
     try {
         const project = await Project.findById(req.params.id, req.body)
@@ -116,10 +120,11 @@ exports.removeMember = async (req, res) => {
         await project.save({
             message: "Project was updated successfully."
         })
-        res.status(200).send({ success: true })
+        return res.status(200).json({ success: true })
     } catch (err) {
-        res.status(500).send({
-            message: `Could not update Project with id=$(id). Error:$(err) ` 
+        return res.status(500).json({
+            success: false,
+            message: `Could not update Project with id=$(id). Error:$(err) `
         })
     }
 }
@@ -127,15 +132,15 @@ exports.removeMember = async (req, res) => {
 exports.delete = async (req, res) => {
     if (!req.params.id) {
         res.status(200).send({ success: true });
-        return;
     }
     try {
         const project = await Project.findByIdAndDelete(req.params.id)
         if (!project) res.status(404).send("No item found")
         res.status(200).send({ success: true })
     } catch (err) {
-        res.status(500).send({
-            message: `Could not delete Project with id=$(id). Error:$(err) ` 
+        return res.status(500).json({
+            success: false,
+            message: `Could not delete Project with id=$(id). Error:$(err) `
         })
     }
 }
@@ -143,10 +148,11 @@ exports.delete = async (req, res) => {
 exports.deleteAll = async (req, res) => {
     try {
         const project = await Project.deleteMany()
-        if (!project) res.status(404).send("No item found")
-        res.status(200).send({ success: true })
+        if (!project) return res.status(200).json({ success: false, message: "No item found" })
+        return res.status(200).json({ success: true })
     } catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Could not delete Projects"
         })
     }
@@ -157,9 +163,10 @@ exports.deleteByLeadId = async (req, res) => {
     try {
         const project = await Project.deleteMany({ lead: req.params.id })
         if (!project) res.status(404).send("No item found")
-        res.status(200).send({ success: true })
+        return res.status(200).json({ success: true })
     } catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Could not delete Projects"
         })
     }

@@ -12,7 +12,7 @@ const validateId = (req, res) => {
 
 exports.create = async (req, res) => {
     // Validate request
-    if (!req.body.author || !req.body.project || !req.body.description ||!req.body.issue) {
+    if (!req.body.author || !req.body.project || !req.body.description || !req.body.issue) {
         res.status(200).send({
             message: "The content body can not be empty."
         });
@@ -28,27 +28,35 @@ exports.create = async (req, res) => {
         description: req.body.description,
         date: new Date(),
         issue: req.body.issue,
-        parent: req.body.parent||""
+        parent: req.body.parent || ""
     });
     try {
         await comment.save()
-        res.status(200).send({ success: true, id: comment._id });
+        return res.status(200).json({
+            success: true,
+            id: comment._id
+        });
     } catch (err) {
-        res.status(500).send({
-            message:
-                err || "Some error occurred while creating the comment."
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while creating the comment."
         });
     }
 }
 
 // Retrieve all comments involving a particular user
 exports.findAll = (req, res) => {
-    Comment.find().sort({'date': 'ascd'})
-    .then(data => { res.status(200).send(data); })
+    Comment.find().sort({ 'date': 'ascd' })
+        .then(data => {
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
+        })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while retrieving Comments."
             });
         });
 }
@@ -56,24 +64,32 @@ exports.findAll = (req, res) => {
 // Retrieve a single Comment with id
 exports.findOne = (req, res) => {
     validateId(req, res);
-    Comment.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
-            });
+    Comment.find({ _id: req.params.id }).then(data => {
+        return res.status(200).json({
+            success: true,
+            data: data
         });
+    }).catch(err => {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Comments."
+        });
+    });
 }
 
 // Retrieve all Comments in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Comment.find({ project: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).send(data); })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
+    Comment.find({ project: req.params.id }).sort({ 'date': 'ascd' })
+        .then(data => {
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
+        }).catch(err => {
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while retrieving Comments."
             });
         });
 }
@@ -81,49 +97,64 @@ exports.findByProject = (req, res) => {
 // Retrieve all Comments in a particular project
 exports.findForIssue = (req, res) => {
     validateId(req, res);
-    Comment.find({ issue: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).send(data); })
+    Comment.find({ issue: req.params.id }).sort({ 'date': 'ascd' })
+        .then(data => {
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
+        })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
 exports.findChildren = (req, res) => {
     validateId(req, res);
-    Comment.find({ parent: req.params.id }).sort({'date': 'ascd'})
-    .then(data => { res.status(200).send(data); })
+    Comment.find({ parent: req.params.id }).sort({ 'date': 'ascd' })
+        .then(data => {
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
+        })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while retrieving Comments."
             });
         });
 }
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Comment.findByIdAndUpdate(req.params.id).then(data => { res.status(200).send({ success: true }); })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Comments."
-            });
+    Comment.findByIdAndUpdate(req.params.id).then(data => {
+        return res.status(200).json({
+            success: true,
         });
+    }).catch(err => {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Comments."
+        });
+    });
 }
 
 // Delete all Comment
 exports.deleteAll = (req, res) => {
     Comment.deleteMany()
         .then(() => {
-            res.status(200).send({ success: true });
+            return res.status(200).json({
+                success: true,
+            });
         })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while deleting Comment. "
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while deleting Comment. "
             });
         });
 }
@@ -134,25 +165,29 @@ exports.delete = (req, res) => {
     validateId(req, res);
     Comment.findByIdAndDelete(req.params.id)
         .then(data => {
-            res.status(200).send({ success: true });
+            return res.status(200).json({
+                success: true,
+            });
         })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while deleting Comment."
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while deleting Comment."
             });
         });
 }
 
 exports.deleteByIssue = (req, res) => {
-    Comment.deleteMany({issue:req.params.id})
+    Comment.deleteMany({ issue: req.params.id })
         .then(() => {
-            res.status(200).send({ success: true });
+            return res.status(200).json({
+                success: true,
+            });
         })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while deleting Comment. "
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while deleting Comment. "
             });
         });
 }

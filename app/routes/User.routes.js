@@ -11,13 +11,13 @@ module.exports = app => {
 
     //TODO
     //check req.logout()
-    router.get('/logout', (req, res) => {
+    router.post('/logout', (req, res) => {
+        //TODO change to get token.
         req.logout();
-        res.redirect('/login');
+        //The server clears the state
+        //TODO the client redirects...
+        // res.redirect('/login');
     });
-
-    // Add a project
-    router.post("/:id/projects", users.addProject);
 
     // Retrieve all users
     router.get("/", users.findAll);

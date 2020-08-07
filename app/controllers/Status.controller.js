@@ -3,20 +3,20 @@ const Status = db.status
 
 const validateId = (req, res) => {
     if (!req.params.id) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 }
 
 exports.create = async (req, res) => {
     // Validate request
     if (!req.body.name || !req.body.project) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 
     // Create a status
@@ -28,11 +28,13 @@ exports.create = async (req, res) => {
     });
     try {
         await status.save()
-        res.status(200).send({ success: true, id: status._id });
+        return res.status(200).json({
+            success: true, id: status._id
+        });
     } catch (err) {
-        res.status(500).send({
-            message:
-                err || "Some error occurred while creating the status."
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while creating the status."
         });
     }
 }
@@ -41,9 +43,9 @@ exports.create = async (req, res) => {
 exports.findAll = (req, res) => {
     Status.find().then(data => { res.status(200).send(data); })
         .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Statuss."
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while retrieving Statuss."
             });
         });
 }
@@ -51,50 +53,59 @@ exports.findAll = (req, res) => {
 // Retrieve a single Status with id
 exports.findOne = (req, res) => {
     validateId(req, res);
-    Status.find({ _id: req.params.id }).then(data => { res.status(200).send(data); })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Statuss."
-            });
+    Status.find({ _id: req.params.id }).then(data => {
+        return res.status(200).json({
+            success: true,
+            data: data
         });
+    }).catch(err => {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Statuss."
+        });
+    });
 }
 
 // Retrieve all Statuss in a particular project
 exports.findByProject = (req, res) => {
     validateId(req, res);
-    Status.find({ project: req.params.id }).then(data => { res.status(200).send(data); })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Statuss."
-            });
+    Status.find({ project: req.params.id }).then(data => {
+        return res.status(200).json({
+            success: true,
+            data: data
         });
+    }).catch(err => {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Statuss."
+        });
+    });
 }
 
 exports.update = (req, res) => {
     validateId(req, res);
     Status.findByIdAndUpdate(req.params.id).then(data => {
-        res.status(200).send({ success: true });
-    })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while retrieving Statuss."
-            });
+        return res.status(200).json({
+            success: true,
+            data: data
         });
+    }).catch(err => {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Statuss."
+        });
+    });
 }
 
 // Delete all Status
 exports.deleteAll = (req, res) => {
     Status.deleteMany()
         .then(() => {
-            res.status(200).send({ success: true });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while deleting Status. "
+            return res.status(200).json({ success: true });
+        }).catch(err => {
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while deleting Status. "
             });
         });
 }
@@ -105,12 +116,11 @@ exports.delete = (req, res) => {
     validateId(req, res);
     Status.findByIdAndDelete(req.params.id)
         .then(data => {
-            res.status(200).send({ success: true });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err || "Some error occurred while deleting Status."
+            return res.status(200).json({ success: true });
+        }).catch(err => {
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while deleting Status. "
             });
         });
 }

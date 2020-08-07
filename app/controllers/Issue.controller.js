@@ -3,28 +3,28 @@ const Issue = db.issues
 
 const validateIssue = (req, res) => {
     if (!req.body.project || !req.body.issueType || !req.body.summary) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 }
 
 const validateId = (req, res) => {
     if (!req.params.id) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 }
 
 const validateIdAndType = (req, res) => {
     if (!req.params.id || !req.params.type) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
 }
 
@@ -49,11 +49,14 @@ exports.createCustomIssue = async (req, res) => {
     });
     try {
         await issue.save()
-        res.status(200).send(issue);
+        return res.status(200).json({
+            success: true,
+            data: issue
+        });
     } catch (err) {
-        res.status(500).send({
-            message:
-                err.message || "Some error occurred while creating the issue."
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Some error occurred while creating the issue."
         });
     }
 }
@@ -80,18 +83,24 @@ exports.create = async (req, res) => {
     });
     try {
         await issue.save()
-        res.status(200).send({ success: true, id: issue._id });
+        return res.status(200).json({
+            success: true,
+            id: issue._id
+        });
     } catch (err) {
-        res.status(500).send({
-            message:
-                err.message || "Some error occurred while creating the issue."
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Some error occurred while creating the issue."
         });
     }
 }
 
 exports.findAll = async (req, res) => {
     Issue.find().then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        })
     })
     //TODO Organize the code so that each task is inside epic...
     //Stream processing
@@ -100,7 +109,10 @@ exports.findAll = async (req, res) => {
 exports.findOne = async (req, res) => {
     validateId(req, res);
     Issue.findById(req.params.id).then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
     })
 }
 
@@ -108,7 +120,10 @@ exports.findOne = async (req, res) => {
 exports.findForProject = async (req, res) => {
     validateId(req, res);
     Issue.find({ project: req.params.id }).then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
     })
 }
 
@@ -116,7 +131,10 @@ exports.findForProject = async (req, res) => {
 exports.findByAssignee = async (req, res) => {
     validateId(req, res);
     Issue.find({ assignee: req.params.id }).then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
     })
 }
 
@@ -124,19 +142,25 @@ exports.findByAssignee = async (req, res) => {
 exports.findByReportee = async (req, res) => {
     validateId(req, res);
     Issue.find({ reportee: req.params.id }).then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
     })
 }
 
 exports.findByType = async (req, res) => {
     if (req.params.type) {
-        res.status(200).send({
+        return res.status(200).json({
+            success: false,
             message: "The content body can not be empty."
         });
-        return;
     }
     Issue.findById({ issueType: req.params.type }).then(data => {
-        res.status(200).send(data);
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
     })
 }
 
@@ -145,7 +169,10 @@ exports.findByTypeForProject = async (req, res) => {
     validateIdAndType(req, res);
     Issue.findById({ project: req.params.id, issueType: req.params.type })
         .then(data => {
-            res.status(200).send(data);
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
         })
 }
 
@@ -154,7 +181,10 @@ exports.findByTypeAndAssignee = async (req, res) => {
     validateIdAndType(req, res);
     Issue.findById({ assignee: req.params.id, issueType: req.params.type })
         .then(data => {
-            res.status(200).send(data);
+            return res.status(200).json({
+                success: true,
+                data: data
+            });
         })
 }
 
@@ -162,7 +192,10 @@ exports.findByTypeAndAssignee = async (req, res) => {
 exports.findChildren = async (req, res) => {
     validateId(req, res);
     Issue.findById(req.params.id).then(data => {
-        res.status(200).send(data.children);
+        return res.status(200).json({
+            success: true,
+            data: data.children
+        });
     })
 }
 
@@ -170,7 +203,10 @@ exports.findChildren = async (req, res) => {
 exports.findParent = async (req, res) => {
     validateId(req, res);
     Issue.findById(req.params.id).then(data => {
-        res.status(200).send(data.parent);
+        return res.status(200).json({
+            success: true,
+            data: data.parent
+        });
     })
 }
 
@@ -179,9 +215,12 @@ exports.update = async (req, res) => {
     try {
         const project = await Issue.findByIdAndUpdate(req.params.id, req.body)
         await project.save()
-        res.status(200).send({ success: true });
+        return res.status(200).json({
+            success: true
+        });
     } catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Error updating Review with id=" + id
         })
     }
@@ -192,14 +231,17 @@ exports.delete = (req, res) => {
     try {
         Issue.findById(req.params.id).then(
             issue => {
-                if (!issue) res.status(404).send({ success:false })
+                if (!issue) res.status(404).json({ success: false, message: "Could not find issue." })
                 else {
-                    res.status(200).send({ success: true })
+                    return res.status(200).json({
+                        success: true
+                    });
                 }
             }
         )
     } catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Could not delete issue with id=" + id + ". Error: " + err
         })
     }
@@ -209,10 +251,13 @@ exports.deleteAll = async (req, res) => {
     validateId(req, res);
     try {
         await Issue.deleteMany()
-        res.status(200).send({ success: true })
+        return res.status(200).json({
+            success: true
+        });
     }
     catch (err) {
-        res.status(500).send({
+        return res.status(500).json({
+            success: false,
             message: "Could not delete issues. Error: " + err
         })
     }
