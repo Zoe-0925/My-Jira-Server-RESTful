@@ -78,7 +78,7 @@ exports.findOne = (req, res) => {
 }
 
 // Retrieve all Comments in a particular project
-exports.findByProject = (req, res) => {
+exports.findForProject = (req, res) => {
     validateId(req, res);
     Comment.find({ project: req.params.id }).sort({ 'date': 'ascd' })
         .then(data => {

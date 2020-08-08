@@ -2,7 +2,7 @@ const db = require("../models");
 const User = db.users
 const mongoose = require('mongoose');
 const passport = require("passport")
-    , LocalStrategy = require('passport-local').Strategy;
+// , LocalStrategy = require('passport-local').Strategy;
 const utils = require('../helpers');
 
 // Create and Save a new Tutorial
@@ -14,26 +14,31 @@ exports.create = async (req, res) => {
             message: "The content body can not be empty."
         });
     }
+
+    User.find({email:req.body.email}).then(data => {
+        if(data){
+            res.status(200).json({
+                success: false,
+                message:"Email already exists."
+            });
+        }
+    })
+
     // Create a user
     var id = mongoose.Types.ObjectId();
-    const saltHash = utils.genPassword(req.body.password);
-
-    const salt = saltHash.salt;
-    const hash = saltHash.hash;
-
     const user = new User({
         _id: id,
         name: req.body.name,
         email: req.body.email,
-        hash: hash,
-        salt: salt,
+        hash: req.body.hash,
+        salt: req.body.salt,
         projects: []
     });
     try {
         await user.save()
         return res.status(200).json({
             success: true,
-            data: user
+            id: id
         });
     } catch (err) {
         return res.status(500).json({
@@ -43,24 +48,28 @@ exports.create = async (req, res) => {
     }
 }
 
-exports.findAll = (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
-        User.find().then(data => {
-            return res.status(200).json({
-                success: true,
-                data: data
-            });
-        })
-    }
+exports.findAll = (req, res, next) => {
+    //  passport.authenticate('jwt', { session: false }), (req, res, next) => {
+    User.find().then(data => {
+        if(!data){
+            res.json({data:[]})
+        }
+        res.json({
+            success: true,
+            data: data
+        });
+    })
+    // }
 }
 
+
 // Retrieve a single User with id
-exports.findOne = (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
+exports.findOne = (req, res, next) => {
+   // passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         User.find({ _id: req.params.id })
             .then(data => {
-                return res.status(200).json({
+                res.status(200).json({
                     success: true,
                     data: data
                 });
@@ -71,12 +80,13 @@ exports.findOne = (req, res) => {
                     message: err.message || "Some error occurred while retrieving Users."
                 });
             });
-    }
+   // }
 }
 
+
 // Retrieve a single User with id
-exports.findOneByEmail = (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
+exports.findOneByEmail = (req, res, next) => {
+ //  passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         User.find({ email: req.params.email })
             .then(data => {
@@ -91,7 +101,7 @@ exports.findOneByEmail = (req, res) => {
                     message: err.message || "Some error occurred while retrieving Users."
                 });
             });
-    }
+ //   }
 }
 
 // Retrieve a single User with id
@@ -111,129 +121,121 @@ exports.checkEmailExist = (req, res) => {
 
 // Update a User by id from the database.
 exports.update = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
-
+  //  passport.authenticate('jwt', { session: false }), (req, res, next) => {
         if (!req.body.id || !req.body.name) {
             return res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
             });
         }
-        try {
-            await User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
-            res.status(200).send({ success: true });
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: "Error updating User with id=" + req.body.id + ", errors: " + err
-            })
-        }
-    }
+        User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
+            .then(data => { return res.status(200).json({ success: true }); })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: "Error updating User with id=" + req.body.id + ", errors: " + err
+                })
+            });
+  //  }
 }
 
 // Update a User by id from the database.
-exports.updatePassword = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
-
+exports.updatePassword = (req, res) => {
+ //   passport.authenticate('jwt', { session: false }), (req, res, next) => {
         if (!req.body.id || !req.body.password) {
-            res.status(200).json({
+            return res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
             });
-            return;
         }
-        try {
-            await User.findOneAndUpdate({ _id: req.body.id }, { password: req.body.password })
-            res.status(200).send({ success: true });
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: "Error updating Review with id=" + req.body.id
-            })
-        }
-    }
+        User.findOneAndUpdate({ _id: req.body.id }, { password: req.body.password })
+            .then(data => { return res.status(200).json({ success: true }); })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: "Error updating Review with id=" + err
+                })
+            });
+   // }
 }
 
-// Update a User by id from the database.
-exports.updateEmail = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
+// Update a User by id from the database.
+exports.updateEmail = (req, res) => {
+ //   passport.authenticate('jwt', { session: false }), (req, res, next) => {
         if (!req.body.id || !req.body.email) {
             return res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
             });
         }
-        try {
-            await User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
-            return res.status(200).json({ success: true });
-        } catch (err) {
-            return res.status(500).json({
-                success: false,
-                message: "Error updating Review with id=" + req.body.id
-            })
-        }
-    }
+
+        User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
+            .then(data => { return res.status(200).json({ success: true }); })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: "Error updating Review with id=" + req.body.id
+                })
+            });
+ //   }
 }
 
-exports.delete = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
+exports.delete = (req, res) => {
+//    passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
         if (!req.params.id) {
             return res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
             });
-            return;
         }
-        try {
-            const user = await User.findByIdAndDelete(req.params.id)
+        User.findByIdAndDelete(req.params.id).then(user => {
             if (!user) res.status(404).send("No item found")
             return res.status(200).json({ success: true })
-        } catch (err) {
+        }).catch(err => {
             return res.status(500).json({
                 success: false,
                 message: "Could not delete user with id=" + req.params.id
             })
-        }
-    }
+        });
+ //   }
 }
 
-exports.deleteAll = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
-        try {
-            const user = await User.deleteMany()
+
+exports.deleteAll = (req, res) => {
+ //   passport.authenticate('jwt', { session: false }), (req, res, next) => {
+        User.deleteMany().then(user => {
             if (!user) res.status(404).json({
                 success: false,
                 message: "No item found"
             })
             return res.status(200).json({ success: true })
-        } catch (err) {
+        }).catch(err => {
             return res.status(500).json({
                 success: false,
-                message: "Could not delete users"
+                message: "Could not delete user"
             })
-        }
-    }
+        });
+  //  }
 }
 
-// Delete all users of a particular lead from the database.
-exports.deleteByLeadId = async (req, res) => {
-    passport.authenticate('jwt', { session: false }), (req, res, next) => {
 
-        try {
-            const user = await User.deleteMany({ lead: req.params.id })
+// Delete all users of a particular lead from the database.
+exports.deleteByLeadId = (req, res) => {
+ //   passport.authenticate('jwt', { session: false }), (req, res, next) => {
+        User.deleteMany({ lead: req.params.id }).then(user => {
             if (!user) res.status(404).send("No item found")
             return res.status(200).json({ success: true })
-        } catch (err) {
+        }).catch(err => {
             return res.status(500).json({
                 success: false,
-                message: "Could not delete Users"
+                message: "Could not delete user"
             })
-        }
-    }
-};
+        });
+ //   }
+}
 
 exports.login = async (req, res, next) => {
     User.findOne({ email: req.body.email })
@@ -288,6 +290,7 @@ exports.signup = async (req, res) => {
     }
 };
 
+/**
 exports.loginAuthentication = passport.use(new LocalStrategy(
     function (email, password, done) {
         User.findOne({ email: email }, function (err, user) {
@@ -310,3 +313,4 @@ exports.signupAuthentication = passport.use(new LocalStrategy(
         });
     }
 ));
+ */
