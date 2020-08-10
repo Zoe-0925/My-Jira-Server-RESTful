@@ -14,8 +14,8 @@ require('winston-timer')(winston);
 /**-------------Security and Authentication------ */
 //const session = require('express-session')
 const helmet = require("helmet");
+const passport = require('passport');
 //--------------------------------------
-//const uri = "mongodb+srv://<username>:<password>@cluster0.y1mqq.mongodb.net/<dbname>?retryWrites=true&w=majority";
 
 mongoose.connect(`mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster0.y1mqq.mongodb.net/test?retryWrites=true&w=majority`, {
   useNewUrlParser: true,
@@ -53,7 +53,6 @@ app.get("/", (req, res) => {
   res.send("Hello World.");
 });
 
-
 //Routes
 require("./app/routes/Project.routes")(app);
 require("./app/routes/User.routes")(app);
@@ -61,7 +60,8 @@ require("./app/routes/Label.routes")(app);
 require("./app/routes/Status.routes")(app);
 require("./app/routes/Comment.routes")(app);
 require("./app/routes/Issue.routes")(app);
-//require("./app/Authentication/ThirdPartyPassport")(app);
+// Pass the global passport object into the configuration function
+require('./app/config/passport')(passport);
 
 
 // set port, listen for requests

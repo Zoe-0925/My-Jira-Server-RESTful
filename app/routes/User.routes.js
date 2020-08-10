@@ -7,8 +7,6 @@ module.exports = app => {
 
     router.post("/login", users.login);
 
-    router.post("/signup", users.signup);
-
     //TODO
     //check req.logout()
     router.post('/logout', (req, res) => {
@@ -24,12 +22,6 @@ module.exports = app => {
 
     // Retrieve a single user with id
     router.get("/:id", users.findOne);
-
-    // Retrieve a single user with email
-    router.get("/email/:email", users.findOneByEmail);
-
-    // Retrieve a single user with email
-    router.get("/checkEmail/:email", users.checkEmailExist);
 
     // Update a user's name and email with id
     router.put("/info/:id", users.update);

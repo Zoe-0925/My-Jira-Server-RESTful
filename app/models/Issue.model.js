@@ -13,7 +13,6 @@ module.exports = (Schema, model) => {
         description: String,
         status: {
             type: String,
-            enum: ['In Progress', 'Completed', "Not Started"],
             default: "Not Started"
         },
         assignee: {
