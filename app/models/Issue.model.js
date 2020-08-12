@@ -12,8 +12,8 @@ module.exports = (Schema, model) => {
         },
         description: String,
         status: {
-            type: String,
-            default: "Not Started"
+            type: Schema.Types.ObjectId,
+            default: "Status"
         },
         assignee: {
             type: Schema.Types.ObjectId,
@@ -23,6 +23,10 @@ module.exports = (Schema, model) => {
             type: Schema.Types.ObjectId,
             ref: "Label"
         }],
+        flag: {
+            type: Boolean,
+            default: false
+        },
         startDate: Date,
         dueDate: Date,
         reportee: [{

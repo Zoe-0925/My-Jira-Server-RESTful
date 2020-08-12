@@ -1,5 +1,7 @@
 const db = require("../models");
 const Issue = db.issues
+const Status = db.status
+const Labels = db.labels
 
 const validateIssue = (req, res) => {
     if (!req.body.project || !req.body.issueType || !req.body.summary) {
@@ -116,15 +118,36 @@ exports.findOne = async (req, res) => {
     })
 }
 
+// Retrieve all issues in a project grouped by Status
+exports.findLabelsAndIssuesGroupByStatus = async (req, res) => {
+    validateId(req, res);
+    const statusList = await Status.find({ project: req.params.id })
+    const labels = await Status.find({ project: req.params.id })
+    const epics = await Issue.find({ type: "epic" })
+    const groupByStatus = statusList.map(each => {
+        const subGroup = await Issue.find({ project: req.params.id, status: each._id,
+        type:"task"||"subtask" })
+        return {
+            [each._id]: [subGroup]
+        }
+    })
+    return res.status(200).json({
+        success: true,
+        tasks: groupByStatus,
+        epics: epics,
+        labels: labels
+    });
+}
+
+
 // Retrieve all issues in a project
 exports.findForProject = async (req, res) => {
     validateId(req, res);
-    Issue.find({ project: req.params.id }).then(data => {
-        return res.status(200).json({
-            success: true,
-            data: data
-        });
-    })
+    const data = await Issue.find({ project: req.params.id })
+    return res.status(200).json({
+        success: true,
+        data: data
+    });
 }
 
 // Retrieve all issues involving a particular assignee
