@@ -74,7 +74,7 @@ exports.create = async (req, res) => {
         summary: req.body.summary,
         issueType: req.body.issueType,
         description: req.body.description || "",
-        status: "Not Started",
+        status: req.body.status,
         assignee: req.body.assignee || "", //TODO query the user id and assign it here?
         labels: req.body.labels || [],
         due_date: req.body.due_date || null,
@@ -83,8 +83,11 @@ exports.create = async (req, res) => {
         chilren: req.body.issueType === "Subtask" ? null : [],
         comments: []
     });
+    const status = Status.find({ _id: req.body.status })
+    status.issues.push(issue)
     try {
         await issue.save()
+        await status.save()
         return res.status(200).json({
             success: true,
             id: issue._id
@@ -121,21 +124,18 @@ exports.findOne = async (req, res) => {
 // Retrieve all issues in a project grouped by Status
 exports.findLabelsAndIssuesGroupByStatus = async (req, res) => {
     validateId(req, res);
-    const statusList = await Status.find({ project: req.params.id })
-    const labels = await Status.find({ project: req.params.id })
-    const epics = await Issue.find({ type: "epic" })
-    const groupByStatus = statusList.map(each => {
-        const subGroup = await Issue.find({ project: req.params.id, status: each._id,
-        type:"task"||"subtask" })
-        return {
-            [each._id]: [subGroup]
-        }
-    })
+    const status = await Status.find({ project: req.params.id })
+    const labels = await Labels.find({ project: req.params.id })
+    const epics = await Issue.find({ project: req.params.id, type: "epic" })
+    let tasks = new Map()
+    let issues = await Issue.find({ project: req.params.id, type: "task" || "subtask" })
+    issues.map(each => { tasks.set(each._id, each) })
     return res.status(200).json({
         success: true,
-        tasks: groupByStatus,
+        tasks: tasks,
         epics: epics,
-        labels: labels
+        labels: labels,
+        status: status
     });
 }
 
