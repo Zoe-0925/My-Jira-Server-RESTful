@@ -17,6 +17,14 @@ module.exports = app => {
     // Update a status with id
     router.put("/:id", status.update);
 
+    // Update the order of issues within a status record
+    router.put("/:id/issueOrders", status.updateIssueOrders);
+
+    // Update the order of issues within 2 status record
+    router.put("/issueOrders", status.moveIssueOrders);
+
+    status / issueOrders
+
     // Delete a status with id
     router.delete("/:id", status.delete);
 

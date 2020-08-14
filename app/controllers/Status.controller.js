@@ -84,7 +84,7 @@ exports.findByProject = (req, res) => {
 
 exports.update = (req, res) => {
     validateId(req, res);
-    Status.findByIdAndUpdate(req.params.id).then(data => {
+    Status.findByIdAndUpdate(req.params.id, req.body.data).then(data => {
         return res.status(200).json({
             success: true,
             data: data
@@ -96,6 +96,53 @@ exports.update = (req, res) => {
         });
     });
 }
+
+exports.updateIssueOrders = async (req, res) => {
+    validateId(req, res);
+    const status = await Status.findById(req.params.id)
+    try {
+        const result = Array.from(status.issue_order);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        status.issue_order = result
+        await Status.save()
+        return res.status(200).json({
+            success: true
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Statuss."
+        });
+    }
+}
+
+exports.moveIssueOrders = async (req, res) => {
+    validateId(req, res);
+    const sourceStatus = await Status.findById(req.body.data.source)
+    const destinationStatus = await Status.findById(req.body.data.destination)
+    try {
+        const sourceResult = Array.from(sourceStatus.issue_order);
+        const destinationResult = Array.from(destinationStatus.issue_order);
+        const [removed] = sourceResult.splice(startIndex, 1);
+        destinationResult.splice(endIndex, 0, removed);
+        sourceStatus.issue_order = sourceResult
+        destinationStatus.issue_order = destinationResult
+        await Status.save()
+        return res.status(200).json({
+            success: true
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err || "Some error occurred while retrieving Statuss."
+        });
+    }
+}
+
+
 
 // Delete all Status
 exports.deleteAll = (req, res) => {
@@ -109,7 +156,6 @@ exports.deleteAll = (req, res) => {
             });
         });
 }
-
 
 // Retrieve all Statuss involving a particular user
 exports.delete = (req, res) => {
