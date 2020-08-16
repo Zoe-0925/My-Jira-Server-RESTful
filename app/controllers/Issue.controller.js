@@ -236,15 +236,32 @@ exports.findParent = async (req, res) => {
 exports.update = async (req, res) => {
     validateId(req, res);
     try {
-        const project = await Issue.findByIdAndUpdate(req.params.id, req.body)
-        await project.save()
+        const issue = await Issue.findByIdAndUpdate(req.params.id, req.body)
+        await issue.save()
         return res.status(200).json({
             success: true
         });
     } catch (err) {
         return res.status(500).json({
             success: false,
-            message: "Error updating Review with id=" + id
+            message: "Error updating Issue. Error: " + err
+        })
+    }
+}
+
+exports.toggleFlag = async (req, res) => {
+    validateId(req, res);
+    try {
+        let issue = await Issue.findById(req.params.id)
+        issue.flag = !issue.flag
+        await issue.save()
+        return res.status(200).json({
+            success: true
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Error updating Issue. Error: " + err
         })
     }
 }

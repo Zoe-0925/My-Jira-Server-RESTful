@@ -6,7 +6,10 @@ module.exports = (Schema, model) => {
             type: Schema.Types.ObjectId,
             ref: "Project"
         },
-        issue_order: [String]
+        issues: {
+            type: [String],
+            default: []
+        },
     });
 
     return model('Status', StatusSchema);

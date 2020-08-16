@@ -8,12 +8,12 @@ module.exports = (Schema, model) => {
         summary: String,
         issueType: {
             type: String,
-            enum: ['Epic', 'Task', "Subtask"]
+            enum: ['epic', 'task', "subtask"]
         },
         description: String,
         status: {
             type: Schema.Types.ObjectId,
-            default: "Status"
+            ref: "Status"
         },
         assignee: {
             type: Schema.Types.ObjectId,

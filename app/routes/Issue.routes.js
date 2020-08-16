@@ -43,6 +43,9 @@ module.exports = app => {
     // Update a issue with id
     router.put("/:id", issues.update);
 
+    // Update a issue's flag with id
+    router.put("/:id/flag", issues.toggleFlag);
+
     // Delete a issue with id
     router.delete("/:id", issues.delete);
 
