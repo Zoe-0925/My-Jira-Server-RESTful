@@ -6,42 +6,44 @@ const passport = require('passport'),
     JWTstrategy = require('passport-jwt').Strategy,
     ExtractJWT = require('passport-jwt').ExtractJwt,
     jwtSecret = require('./jwtConfig'),
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcrypt'),
+    mongoose = require('mongoose');
 
 passport.use(
     'register',
     new localStrategy(
         {
-            usernameField: 'username',
+            usernameField: 'email',
             passwordField: 'password',
+            passReqToCallback: true,
             session: false,
         },
-        (username, password, done) => {
+        (req, username, password, done) => {
+            console.log("email", req.body.email);
             try {
                 User.findOne({ email: username }).then(user => {
                     if (user != null) {
                         console.log('username already taken');
                         return done(null, false, { message: 'username already taken' });
-                    } else {
-                        bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
-                            var id = mongoose.Types.ObjectId();
-                            const user = new User({
-                                _id: id,
-                                name: req.body.name,
-                                email: req.body.email,
-                                password: hashedPassword,
-                                projects: []
-                            });
-                            user.save().then(() => {
-                                console.log('user created');
-                                // note the return needed with passport local - remove this return for passport JWT to work
-                                return done(null, user);
-                            });
-                        });
                     }
+                    bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
+                        var id = mongoose.Types.ObjectId();
+                        const user = new User({
+                            _id: id,
+                            name: req.body.name,
+                            email: req.body.email,
+                            password: hashedPassword,
+                            projects: []
+                        });
+                        user.save().then(() => {
+                            console.log('user created');
+                            // note the return needed with passport local - remove this return for passport JWT to work
+                            return done(null, user);
+                        });
+                    });
                 });
             } catch (err) {
-                done(err);
+                done("passport error " + err);
             }
         },
     ),
@@ -51,7 +53,7 @@ passport.use(
     'login',
     new localStrategy(
         {
-            usernameField: 'username',
+            usernameField: 'email',
             passwordField: 'password',
             session: false,
         },

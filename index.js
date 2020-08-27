@@ -15,6 +15,7 @@ require('winston-timer')(winston);
 //const session = require('express-session')
 const helmet = require("helmet");
 const passport = require('passport');
+require('./app/config/passport');
 //--------------------------------------
 
 mongoose.connect(`mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@cluster0.y1mqq.mongodb.net/test?retryWrites=true&w=majority`, {
@@ -24,7 +25,6 @@ mongoose.connect(`mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@
 
 const app = express();
 // Pass the global passport object into the configuration function
-require('./app/config/passport')(passport);
 
 
 // parse requests of content-type - application/json
@@ -37,6 +37,8 @@ app.use(expressRequestId);
 app.use(cors({
   origin: config.corsDomain,
 }));
+
+app.use(helmet());
 
 app.use(passport.initialize())
 

@@ -23,8 +23,6 @@ module.exports = app => {
     // Update the order of issues within 2 status record
     router.put("/issueOrders", status.moveIssueOrders);
 
-    status / issueOrders
-
     // Delete a status with id
     router.delete("/:id", status.delete);
 

@@ -3,6 +3,9 @@ const User = db.users
 const mongoose = require('mongoose');
 const passport = require("passport")
 const BCRYPT_SALT_ROUNDS = 12;
+const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken');
+const jwtSecret= require('../config/jwtConfig');
 // , LocalStrategy = require('passport-local').Strategy;
 const utils = require('../Util');
 
@@ -17,10 +20,10 @@ exports.create = async (req, res) => {
     }
 
     User.find({ email: req.body.email }).then(data => {
-        if (data) {
+        if (data.email) {
             res.status(200).json({
                 success: false,
-                message: "Email already exists."
+                message: "Email already exists. " + data
             });
         }
     })
@@ -205,19 +208,29 @@ exports.updateEmail = (req, res, next) => {
     })
 }
 
+exports.delete = (req, res) => {
+    User.deleteOne({ email: req.params.id }, (err, result) => {
+        if (err) res.status(404).json({
+            success: false,
+            message: "The user is not found"
+        })
+        else {
+            res.status(200).json({ success: true, message: result });
+        }
+    })
+}
+
 exports.deleteAll = (req, res) => {
-    User.deleteMany().then(user => {
-        if (!user) res.status(404).json({
-            success: false,
-            message: "No item found"
-        })
-        return res.status(200).json({ success: true })
-    }).catch(err => {
-        return res.status(500).json({
-            success: false,
-            message: "Could not delete user"
-        })
-    });
+    User.deleteMany({ _id: { $ne: "" } }, (err, result) => {
+        if (err) {
+            res.status(404).json({
+                success: false,
+                message: err
+            })
+        } else {
+            res.status(200).json({ success: true, message: result });
+        }
+    })
 }
 
 exports.login = (req, res, next) => {
@@ -225,11 +238,16 @@ exports.login = (req, res, next) => {
         if (err) {
             console.log(err);
         }
-        if (info != undefined) {
-            console.log(info.message);
-            res.json({ success: false, message: info.message });
-        } else {
-            req.logIn(user, err => {
+        if (info !== undefined) {
+            console.error(info.message);
+            if (info.message === 'bad username') {
+                res.status(401).send(info.message);
+            } else {
+                res.status(403).send(info.message);
+            }
+        }
+        else {
+            req.logIn(user, ()=> {
                 User.findOne({ email: req.body.email }).then(user => {
                     const token = jwt.sign({ id: user.email }, jwtSecret.secret);
                     res.status(200).json({
@@ -268,7 +286,7 @@ exports.register = (req, res, next) => {
                     })
                         .then((data) => {
                             console.log('user created in db');
-                            res.status(200).json({ success: true, id: id });
+                            res.status(200).json({ success: true, id: user._id });
                         });
                 });
             });

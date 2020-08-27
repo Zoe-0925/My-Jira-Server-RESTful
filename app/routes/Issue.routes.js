@@ -14,8 +14,10 @@ module.exports = app => {
     // Retrieve all issues of a particular issue type
     router.get("/user/:id/issueType/:type", issues.findByType);
 
-    router.get("/project/board/:id/", issues.findLabelsAndIssuesGroupByStatus);
+    //TODO
+    //router.get("/project/board/:id/", issues.findLabelsAndIssuesGroupByStatus);
 
+    
     // Retrieve all issues in a project
     router.get("/project/:id/", issues.findForProject);
 
