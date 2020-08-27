@@ -22,17 +22,14 @@ module.exports = app => {
 
     router.post("/signup", users.register);
 
-    // Retrieve a single user with id
-    router.get("/:id", users.findOne);
+    // Update a user's name and email with id
+    router.post("/update-info", users.update);
 
     // Update a user's name and email with id
-    router.put("/info/:id", users.update);
+    router.post("/update-email", users.updateEmail);
 
     // Update a user's name and email with id
-    router.put("/email/:id", users.updateEmail);
-
-    // Update a user's name and email with id
-    router.put("/password/:id", users.updatePassword);
+    router.post("/update-password", users.updatePassword);
 
     // Delete a user with id
     router.delete("/:id", users.delete);

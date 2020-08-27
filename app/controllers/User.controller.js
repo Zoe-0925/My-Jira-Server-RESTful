@@ -5,9 +5,8 @@ const passport = require("passport")
 const BCRYPT_SALT_ROUNDS = 12;
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken');
-const jwtSecret= require('../config/jwtConfig');
+const jwtSecret = require('../config/jwtConfig');
 // , LocalStrategy = require('passport-local').Strategy;
-const utils = require('../Util');
 
 // Create and Save a new Tutorial
 exports.create = async (req, res) => {
@@ -42,7 +41,6 @@ exports.create = async (req, res) => {
         await user.save()
         res.status(200).json({
             success: true,
-            id: id
         });
     } catch (err) {
         res.status(500).json({
@@ -61,47 +59,6 @@ exports.findAll = (req, res, next) => {
             success: true,
             data: data
         });
-    })
-}
-
-// Retrieve a single User with id
-exports.findOne = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    User.find({ _id: req.params.id })
-        .then(data => {
-            res.status(200).json({
-                success: true,
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(500).json({
-                success: false,
-                message: err.message || "Some error occurred while retrieving Users."
-            });
-        });
-}
-
-exports.findOne = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (err) {
-            console.log(err);
-        }
-        if (info != undefined) {
-            res.json({ success: false, message: info.message });
-        } else {
-            User.find({ _id: req.params.id })
-                .then(data => {
-                    console.log('user found in db from route');
-                    res.status(200).send({
-                        success: true,
-                        data: {
-                            email: data.email,
-                            name: data.name,
-                            projects: data.projects
-                        }
-                    });
-                })(req, res, next);
-        };
     })
 }
 
@@ -133,10 +90,9 @@ exports.findMultiple = passport.authenticate('jwt', { session: false }), (req, r
 
 */
 
-
 exports.update = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (!req.body.id || !req.body.name) {
+        if (!req.body.email || !req.body.name) {
             res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
@@ -146,7 +102,7 @@ exports.update = (req, res, next) => {
             console.log(err);
         }
         else {
-            User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
+            User.findOneAndUpdate({ email: user.email }, { name: user.name })
                 .then(data => { return res.status(200).json({ success: true }); })
                 .catch(err => {
                     res.status(500).json({
@@ -160,7 +116,7 @@ exports.update = (req, res, next) => {
 
 exports.updatePassword = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (!req.body.id || !req.body.password) {
+        if (!req.body.password) {
             res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
@@ -170,8 +126,8 @@ exports.updatePassword = (req, res, next) => {
             console.log(err);
         }
         else {
-            bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
-                User.findOneAndUpdate({ _id: req.body.id }, { password: hashedPassword })
+            bcrypt.hash(user.password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
+                User.findOneAndUpdate({ email: user.email }, { password: hashedPassword })
                     .then(data => { return res.status(200).json({ success: true }); })
                     .catch(err => {
                         res.status(500).json({
@@ -185,8 +141,9 @@ exports.updatePassword = (req, res, next) => {
 }
 
 exports.updateEmail = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (!req.body.id || !req.body.email) {
+    passport.authenticate('jwt', { session: false }, (err, user) => {
+        console.log("authenicated")
+        if ( !req.body.email) {
             return res.status(200).json({
                 success: false,
                 message: "The content body can not be empty."
@@ -196,7 +153,7 @@ exports.updateEmail = (req, res, next) => {
             console.log(err);
         }
         else {
-            User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
+            User.findOneAndUpdate({ email: user.email }, { email: req.body.newEmail })
                 .then(data => { return res.status(200).json({ success: true }); })
                 .catch(err => {
                     return res.status(500).json({
@@ -221,7 +178,7 @@ exports.delete = (req, res) => {
 }
 
 exports.deleteAll = (req, res) => {
-    User.deleteMany({ _id: { $ne: "" } }, (err, result) => {
+    User.deleteMany({}, (err, result) => {
         if (err) {
             res.status(404).json({
                 success: false,
@@ -247,13 +204,13 @@ exports.login = (req, res, next) => {
             }
         }
         else {
-            req.logIn(user, ()=> {
+            req.logIn(user, () => {
                 User.findOne({ email: req.body.email }).then(user => {
-                    const token = jwt.sign({ id: user.email }, jwtSecret.secret);
+                    const token = jwt.sign({ email: user.email }, jwtSecret.secret);
                     res.status(200).json({
                         token: token,
                         success: true,
-                        message: 'user found & logged in',
+                        data: { name: user.name, projects: user.projects }
                     });
                 });
             });
@@ -286,7 +243,7 @@ exports.register = (req, res, next) => {
                     })
                         .then((data) => {
                             console.log('user created in db');
-                            res.status(200).json({ success: true, id: user._id });
+                            res.status(200).json({ success: true });
                         });
                 });
             });

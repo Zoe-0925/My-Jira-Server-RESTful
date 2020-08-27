@@ -82,26 +82,30 @@ passport.use(
 );
 
 const opts = {
-    jwtFromRequest: ExtractJWT.fromAuthHeaderWithScheme('JWT'),
+    jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+    // jwtFromRequest: ExtractJWT.fromAuthHeaderWithScheme('JWT'),  // Then JWT xxx
     secretOrKey: jwtSecret.secret,
 };
 
 passport.use(
     'jwt',
     new JWTstrategy(opts, (jwt_payload, done) => {
+        console.log("jwt_payload",jwt_payload)
         try {
-            User.findOne({ email: jwt_payload.id }).then(user => {
+            console.log("started")
+            User.findOne({ email: jwt_payload.email }).then(user => {
+                console.log("authenticated")
                 if (user) {
                     console.log('user found in db in passport');
                     // note the return removed with passport JWT - add this return for passport local
-                    done(null, user);
+                    return done(null, user);
                 } else {
                     console.log('user not found in db');
-                    done(null, false);
+                    return done(null, false);
                 }
             });
         } catch (err) {
-            done(err);
+            return done(err);
         }
     }),
 );
