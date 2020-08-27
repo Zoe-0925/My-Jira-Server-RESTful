@@ -23,6 +23,9 @@ module.exports = app => {
     // Retrieve a single user with id
     router.get("/:id", users.findOne);
 
+    // Retrieve multiple users with id
+    router.post("/users/multiple", users.findMultiple);
+
     // Update a user's name and email with id
     router.put("/info/:id", users.update);
 

@@ -9,7 +9,7 @@ const utils = require('../Util');
 exports.create = async (req, res) => {
     // Validate request
     if (!req.body.name) {
-        return res.status(200).json({
+        res.status(200).json({
             success: false,
             message: "The content body can not be empty."
         });
@@ -36,12 +36,12 @@ exports.create = async (req, res) => {
     });
     try {
         await user.save()
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             id: id
         });
     } catch (err) {
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
             message: err.message || "Some error occurred while creating the user."
         });
@@ -70,115 +70,158 @@ exports.findOne = passport.authenticate('jwt', { session: false }), (req, res, n
             });
         })
         .catch(err => {
-            return res.status(500).json({
+            res.status(500).json({
                 success: false,
                 message: err.message || "Some error occurred while retrieving Users."
             });
         });
 }
 
-
-
-// Retrieve a single User with id
-exports.login = (req, res, next) => {
-    User.find({ email: req.body.email })
-        .then(user => {
-            if (!user) {
-                res.status(401).json({ success: false, msg: "could not find user" });
-            }
-            const isValid = req.body.salt === user.salt && req.body.hash === user.hash
-            if (isValid) {
-                const tokenObject = utils.issueJWT(user);
-                res.status(200).json({
-                    success: true, data: user,
-                    token: tokenObject.token, expiresIn: tokenObject.expires
-                });
-            } else {
-                res.status(401).json({ success: false, msg: "you entered the wrong password" });
-            }
-
-        })
-        .catch((err) => {
-            next(err);
-        });
+exports.findOne = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info != undefined) {
+            res.json({ success: false, message: info.message });
+        } else {
+            User.find({ _id: req.params.id })
+                .then(data => {
+                    console.log('user found in db from route');
+                    res.status(200).send({
+                        success: true,
+                        data: {
+                            email: data.email,
+                            name: data.name,
+                            projects: data.projects
+                        }
+                    });
+                })(req, res, next);
+        };
+    })
 }
 
-// Update a User by id from the database.
-exports.update = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    if (!req.body.id || !req.body.name) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
-    User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
-        .then(data => { return res.status(200).json({ success: true }); })
-        .catch(err => {
-            return res.status(500).json({
+/** 
+exports.findMultiple = passport.authenticate('jwt', { session: false }), (req, res, next) => {
+    let error
+    const results = req.body.map(each => {
+        User.find({ _id: each }).then(data => data).catch(err => {
+            error = {
                 success: false,
-                message: "Error updating User with id=" + req.body.id + ", errors: " + err
-            })
+                message: err.message || "Some error occurred while retrieving Users."
+            };
         });
-}
-
-
-// Update a User by id from the database.
-exports.updatePassword = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    if (!req.body.id || !req.body.salt || req.body.hash) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
-    User.findOneAndUpdate({ _id: req.body.id }, { salt: req.body.salt, hash: req.body.hash })
-        .then(data => { return res.status(200).json({ success: true }); })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: "Error updating Review with id=" + err
-            })
-        });
-}
-
-
-
-// Update a User by id from the database.
-exports.updateEmail = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    if (!req.body.id || !req.body.email) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
-
-    User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
-        .then(data => { return res.status(200).json({ success: true }); })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: "Error updating Review. " + err
-            })
-        });
-}
-
-exports.delete = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    if (!req.params.id) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
-    User.findByIdAndDelete(req.params.id).then(user => {
-        if (!user) res.status(404).send("No item found")
-        return res.status(200).json({ success: true })
-    }).catch(err => {
-        return res.status(500).json({
-            success: false,
-            message: "Could not delete user with id=" + req.params.id
-        })
     });
+
+    if (error) {
+        res.status(500).json({
+            success: false,
+            message: err.message || "Some error occurred while retrieving Users."
+        });
+    }
+    else {
+        res.status(200).json({
+            success: true,
+            data: results
+        });
+    }
 }
 
+*/
+
+
+exports.update = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+        if (!req.body.id || !req.body.name) {
+            res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
+        if (err) {
+            console.log(err);
+        }
+        else {
+            User.findOneAndUpdate({ _id: req.body.id }, { name: req.body.name })
+                .then(data => { return res.status(200).json({ success: true }); })
+                .catch(err => {
+                    res.status(500).json({
+                        success: false,
+                        message: "Error updating User with id=" + req.body.id + ", errors: " + err
+                    })
+                })(req, res, next);
+        };
+    })
+}
+
+exports.updatePassword = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+        if (!req.body.id || !req.body.password) {
+            res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
+        if (err) {
+            console.log(err);
+        }
+        else {
+            bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
+                User.findOneAndUpdate({ _id: req.body.id }, { password: hashedPassword })
+                    .then(data => { return res.status(200).json({ success: true }); })
+                    .catch(err => {
+                        res.status(500).json({
+                            success: false,
+                            message: "Error updating Review with id=" + err
+                        })
+                    })(req, res, next);
+            })
+        };
+    })
+}
+
+exports.updateEmail = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+        if (!req.body.id || !req.body.email) {
+            return res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
+        if (err) {
+            console.log(err);
+        }
+        else {
+            User.findOneAndUpdate({ _id: req.body.id }, { email: req.body.email })
+                .then(data => { return res.status(200).json({ success: true }); })
+                .catch(err => {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                })(req, res, next);
+        };
+    })
+}
+exports.updateEmail = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }), (err, user, info) => {
+        if (!req.params.id) {
+            return res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
+        User.findByIdAndDelete(req.params.id).then(user => {
+            if (!user) res.status(404).send("No item found")
+            return res.status(200).json({ success: true })
+        }).catch(err => {
+            return res.status(500).json({
+                success: false,
+                message: "Could not delete user with id=" + req.params.id
+            })
+        });
+    }
+};
 
 
 exports.deleteAll = (req, res) => {
@@ -196,16 +239,27 @@ exports.deleteAll = (req, res) => {
     });
 }
 
-
-// Delete all users of a particular lead from the database.
-exports.deleteByLeadId = passport.authenticate('jwt', { session: false }), (req, res, next) => {
-    User.deleteMany({ lead: req.params.id }).then(user => {
-        if (!user) res.status(404).send("No item found")
-        return res.status(200).json({ success: true })
-    }).catch(err => {
-        return res.status(500).json({
-            success: false,
-            message: "Could not delete user"
-        })
-    });
+exports.login = (req, res, next) => {
+    passport.authenticate('login', (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info != undefined) {
+            console.log(info.message);
+            res.json({ success: false, message: info.message });
+        } else {
+            req.logIn(user, err => {
+                User.findOne({ email: req.body.email }).then(user => {
+                    const token = jwt.sign({ id: user.email }, jwtSecret.secret);
+                    res.status(200).json({
+                        token: token,
+                        success: true,
+                        message: 'user found & logged in',
+                    });
+                });
+            });
+        }
+    })(req, res, next);
 }
+
+

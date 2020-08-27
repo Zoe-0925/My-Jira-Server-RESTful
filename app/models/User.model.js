@@ -3,8 +3,7 @@ module.exports = (Schema, model) => {
         _id: String,
         name: String,
         email: String,
-        hash: String,
-        salt: String,
+        password: String,
         projects: [{
             type: Schema.Types.ObjectId,
             ref: "Project"

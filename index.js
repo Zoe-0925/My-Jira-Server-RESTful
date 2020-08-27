@@ -23,6 +23,9 @@ mongoose.connect(`mongodb+srv://${process.env.USERNAME}:${process.env.PASSWORD}@
 });
 
 const app = express();
+// Pass the global passport object into the configuration function
+require('./app/config/passport')(passport);
+
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -35,6 +38,7 @@ app.use(cors({
   origin: config.corsDomain,
 }));
 
+app.use(passport.initialize())
 
 //app.use(helmet()); //security
 
@@ -60,8 +64,6 @@ require("./app/routes/Label.routes")(app);
 require("./app/routes/Status.routes")(app);
 require("./app/routes/Comment.routes")(app);
 require("./app/routes/Issue.routes")(app);
-// Pass the global passport object into the configuration function
-require('./app/config/passport')(passport);
 
 
 // set port, listen for requests

@@ -8,7 +8,6 @@ const db = require("../models");
 const User = db.users
 
 
-
 const pathToKey = path.join(__dirname, '..', 'id_rsa_pub.pem');
 
 const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');

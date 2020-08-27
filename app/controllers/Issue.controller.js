@@ -122,7 +122,7 @@ exports.findOne = async (req, res) => {
 }
 
 // Retrieve all issues in a project grouped by Status
-exports.findLabelsAndIssuesGroupByStatus = async (req, res) => {
+exports.findLabelsAndIssuesAndStatus = async (req, res) => {
     validateId(req, res);
     const status = await Status.find({ project: req.params.id })
     const labels = await Labels.find({ project: req.params.id })
@@ -138,7 +138,6 @@ exports.findLabelsAndIssuesGroupByStatus = async (req, res) => {
         status: status
     });
 }
-
 
 // Retrieve all issues in a project
 exports.findForProject = async (req, res) => {
