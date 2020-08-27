@@ -24,7 +24,15 @@ passport.use(
                         return done(null, false, { message: 'username already taken' });
                     } else {
                         bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
-                            User.create({ username, password: hashedPassword }).then(user => {
+                            var id = mongoose.Types.ObjectId();
+                            const user = new User({
+                                _id: id,
+                                name: req.body.name,
+                                email: req.body.email,
+                                password: hashedPassword,
+                                projects: []
+                            });
+                            user.save().then(() => {
                                 console.log('user created');
                                 // note the return needed with passport local - remove this return for passport JWT to work
                                 return done(null, user);

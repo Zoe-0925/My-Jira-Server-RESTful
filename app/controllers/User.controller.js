@@ -2,6 +2,7 @@ const db = require("../models");
 const User = db.users
 const mongoose = require('mongoose');
 const passport = require("passport")
+const BCRYPT_SALT_ROUNDS = 12;
 // , LocalStrategy = require('passport-local').Strategy;
 const utils = require('../Util');
 
@@ -26,12 +27,12 @@ exports.create = async (req, res) => {
 
     // Create a user
     var id = mongoose.Types.ObjectId();
+    const hashedPassword = await bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
     const user = new User({
         _id: id,
         name: req.body.name,
         email: req.body.email,
-        hash: req.body.hash,
-        salt: req.body.salt,
+        password: hashedPassword,
         projects: []
     });
     try {
@@ -203,26 +204,6 @@ exports.updateEmail = (req, res, next) => {
         };
     })
 }
-exports.updateEmail = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }), (err, user, info) => {
-        if (!req.params.id) {
-            return res.status(200).json({
-                success: false,
-                message: "The content body can not be empty."
-            });
-        }
-        User.findByIdAndDelete(req.params.id).then(user => {
-            if (!user) res.status(404).send("No item found")
-            return res.status(200).json({ success: true })
-        }).catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: "Could not delete user with id=" + req.params.id
-            })
-        });
-    }
-};
-
 
 exports.deleteAll = (req, res) => {
     User.deleteMany().then(user => {
@@ -256,6 +237,39 @@ exports.login = (req, res, next) => {
                         success: true,
                         message: 'user found & logged in',
                     });
+                });
+            });
+        }
+    })(req, res, next);
+}
+
+exports.register = (req, res, next) => {
+    passport.authenticate('register', (err, user, info) => {
+        if (err) {
+            console.error(err);
+        }
+        if (info !== undefined) {
+            console.error(info.message);
+            res.status(403).send(info.message);
+        } else {
+            // eslint-disable-next-line no-unused-vars
+            req.logIn(user, error => {
+                console.log(user);
+                const data = {
+                    name: req.body.name,
+                    email: req.body.email,
+                };
+                console.log(data);
+                User.findOne({ email: data.email }).then(user => {
+                    console.log(user);
+                    user.update({
+                        name: data.name,
+                        email: data.email,
+                    })
+                        .then((data) => {
+                            console.log('user created in db');
+                            res.status(200).json({ success: true, id: id });
+                        });
                 });
             });
         }
