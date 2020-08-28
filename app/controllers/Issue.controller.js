@@ -54,7 +54,7 @@ exports.createCustomIssue = (req, res, next) => {
             labels: req.body.labels || [],
             due_date: req.body.due_date || null,
             reportee: req.body.reportee || "",  //TODO query the user id and assign it here?
-            parent: req.body.parent || null,
+            parent: req.body.parent || "",
             chilren: req.body.children || [],
             comments: []
         });

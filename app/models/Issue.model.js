@@ -1,7 +1,7 @@
 module.exports = (Schema, model) => {
     var IssueSchema = new Schema({
-        _id:String,
-        project:{
+        _id: String,
+        project: {
             type: Schema.Types.ObjectId,
             ref: "Project"
         },
@@ -19,26 +19,30 @@ module.exports = (Schema, model) => {
             type: Schema.Types.ObjectId,
             ref: "User"
         },
-        labels: [{
-            type: Schema.Types.ObjectId,
-            ref: "Label"
-        }],
+        labels: {
+            type: [{
+                type: Schema.Types.ObjectId,
+                ref: "Label"
+            }], default: []
+        },
         flag: {
             type: Boolean,
             default: false
         },
-        startDate: Date,
-        dueDate: Date,
+        startDate: { type: Date, default: new Date() },
+        dueDate: { type: Date, default: null },
         reportee: [{
             type: Schema.Types.ObjectId,
             ref: "User"
         }],
-        parent: String,
-        chilren: [String],
-        comments: [{
-            type: Schema.Types.ObjectId,
-            ref: "Comment"
-        }],
+        parent: { type: String, deafult: "" },
+        chilren: { type: [String], deafult: [] },
+        comments: {
+            type: [{
+                type: Schema.Types.ObjectId,
+                ref: "Comment"
+            }], default: []
+        }
     });
 
     return model('Issue', IssueSchema);

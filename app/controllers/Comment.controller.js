@@ -33,9 +33,7 @@ exports.create = (req, res, next) => {
             project: req.body.project,
             author: req.body.author,
             description: req.body.description,
-            date: new Date(),
             issue: req.body.issue,
-            parent: req.body.parent || ""
         });
         try {
             await comment.save()

@@ -4,7 +4,7 @@ const db = require("../index");
 const User = db.users
 require("regenerator-runtime/runtime");
 
-describe('Users', () => {
+describe.skip('Users', () => {
     beforeAll(async () => {
         const url = `mongodb://127.0.0.1/my_database`
         await mongoose.connect(url, { useNewUrlParser: true })
@@ -15,8 +15,6 @@ describe('Users', () => {
     });
 
     describe('CREATE', () => {
-        let users;
-
         test('can create a user', async () => {
             var id = mongoose.Types.ObjectId();
             await new User({

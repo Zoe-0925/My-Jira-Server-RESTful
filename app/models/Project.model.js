@@ -13,10 +13,13 @@ module.exports = (Schema, model) => {
             ref: "User"
         }],
         image: { type: String, default: '' },
-        issues: [{
-            type: Schema.Types.ObjectId,
-            ref: "Issue"
-        }],
+        issues: {
+            type: [{
+                type: Schema.Types.ObjectId,
+                ref: "Issue"
+            }],
+            default: []
+        },
         default_assignee: { type: String, default: 'Project Lead' },
         start_date: { type: Date, default: Date.now },
     });

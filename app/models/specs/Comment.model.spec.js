@@ -4,13 +4,17 @@ const db = require("../index");
 const Comment = db.comments
 const User = db.users
 const Issue = db.issues
+const Status = db.status
+const Project = db.projects
 require("regenerator-runtime/runtime");
 
+//TODO delete
 
-describe('Comments', () => {
-    let userId = mongoose.Types.ObjectId();
-    let issueId = mongoose.Types.ObjectId();
-    let projectId = mongoose.Types.ObjectId();
+describe.skip('Comments', () => {
+    let userId =  mongoose.Types.ObjectId()
+    let issueId =  mongoose.Types.ObjectId()
+    let projectId =  mongoose.Types.ObjectId()
+    let statusId =  mongoose.Types.ObjectId()
     beforeAll(async () => {
         const url = `mongodb://127.0.0.1/my_database`
         await mongoose.connect(url, { useNewUrlParser: true })
@@ -26,49 +30,26 @@ describe('Comments', () => {
             lead: userId,
             members: [userId],
             issues: [],
-            default_assignee: { type: String, default: 'Project Lead' },
-            start_date: { type: Date, default: Date.now },
+            default_assignee: 'Project Lead',
+            start_date: new Date(),
+        }).save();
+        await new Status({
+            _id: statusId,
+            name: "test status",
+            project: projectId,
+            issues: [],
         }).save();
         await new Issue({
             _id: issueId,
-            project: {
-                type: Schema.Types.ObjectId,
-                ref: "Project"
-            },
-            summary: String,
-            issueType: {
-                type: String,
-                enum: ['epic', 'task', "subtask"]
-            },
+            project: projectId,
+            summary: "test project summary",
+            issueType: "task",
             description: String,
-            status: {
-                type: Schema.Types.ObjectId,
-                ref: "Status"
-            },
-            assignee: {
-                type: Schema.Types.ObjectId,
-                ref: "User"
-            },
-            labels: [{
-                type: Schema.Types.ObjectId,
-                ref: "Label"
-            }],
-            flag: {
-                type: Boolean,
-                default: false
-            },
-            startDate: Date,
-            dueDate: Date,
-            reportee: [{
-                type: Schema.Types.ObjectId,
-                ref: "User"
-            }],
-            parent: String,
-            chilren: [String],
-            comments: [{
-                type: Schema.Types.ObjectId,
-                ref: "Comment"
-            }],
+            status: statusId,
+            assignee: userId,
+            startDate: new Date(),
+            dueDate: null,
+            reportee: null,
         }).save();
     })
 
@@ -77,20 +58,16 @@ describe('Comments', () => {
     });
 
     describe('CREATE', () => {
-        let comments;
-
         test('can create a Comment', async () => {
             var id = mongoose.Types.ObjectId();
-            const now = new Date()
             await new Comment({
                 _id: id,
-                author: "test",
+                author: userId,
                 description: "test description",
-                date: now,
-                issue: "test",
-                parent: String
+                date: new Date(),
+                issue: issueId
             }).save();
-            const comment = await Comment.findOne({ id: id });
+            const comment = await Comment.findOne({ _id: id });
             expect(comment.description).toEqual("test description");
         });
     });
@@ -99,8 +76,8 @@ describe('Comments', () => {
         let comments;
 
         test('All Comments of a particular issue can find be found by the issue id', async () => {
-            const targetComment = await Comment.findOne({ issue: "test" })
-            expect(targetComment.name).toEqual('Sol');
+            const targetComment = await Comment.findOne({ issue: issueId })
+            expect(targetComment.description).toEqual("test description");
         });
     });
     describe('DELETE', () => {
