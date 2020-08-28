@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/Zoe-0925/My-Jira-Server#readme",
   "dependencies": {
+    "@babel/preset-env": "^7.11.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
@@ -47,7 +48,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",
-    "@babel/preset-env": "^7.11.0",
     "@babel/preset-react": "^7.10.4",
     "@shelf/jest-mongodb": "^1.2.2",
     "babel-cli": "^6.26.0",
