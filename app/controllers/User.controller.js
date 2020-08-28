@@ -44,7 +44,6 @@ exports.create = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({
-            success: false,
             message: err.message || "Some error occurred while creating the user."
         });
     }
@@ -91,29 +90,31 @@ exports.findMultiple = passport.authenticate('jwt', { session: false }), (req, r
 */
 
 exports.update = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
         if (!req.body.email || !req.body.name) {
             res.status(200).json({
-                success: false,
                 message: "The content body can not be empty."
             });
         }
         if (err) {
             console.log(err);
         }
-        else {
-            User.findOneAndUpdate({ email: user.email }, { name: user.name })
-                .then(data => { return res.status(200).json({ success: true }); })
-                .catch(err => {
-                    res.status(500).json({
-                        success: false,
-                        message: "Error updating User with id=" + req.body.id + ", errors: " + err
-                    })
-                })(req, res, next);
-        };
-    })
+        if (info !== undefined) {
+            res.status(403).send(info.message)
+        }
+        try {
+            await User.updateOne({ email: user.email }, { name: user.name })
+            res.status(200).json({ success: true });
+        } catch (err) {
+            res.status(500).json({
+                message: "Error updating User with id=" + req.body.id + ", errors: " + err
+            })
+        }
+    })(req, res, next);
 }
 
+//TODO bcrypt: data and salt arguments required
+//TODO change to async await
 exports.updatePassword = (req, res, next) => {
     passport.authenticate('jwt', { session: false }, (err, user, info) => {
         if (!req.body.password) {
@@ -125,50 +126,55 @@ exports.updatePassword = (req, res, next) => {
         if (err) {
             console.log(err);
         }
+        if (info !== undefined) {
+            res.status(403).send(info.message)
+        }
         else {
             bcrypt.hash(user.password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
-                User.findOneAndUpdate({ email: user.email }, { password: hashedPassword })
-                    .then(data => { return res.status(200).json({ success: true }); })
+                User.updateOne({ email: user.email }, { password: hashedPassword })
+                    .then(data => { return res.status(200).json({ success: true, data: data }); })
                     .catch(err => {
                         res.status(500).json({
-                            success: false,
                             message: "Error updating Review with id=" + err
                         })
-                    })(req, res, next);
+                    })
             })
         };
-    })
+    })(req, res, next);
 }
 
 exports.updateEmail = (req, res, next) => {
-    passport.authenticate('jwt', { session: false }, (err, user) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
         console.log("authenicated")
-        if ( !req.body.email) {
+        if (!req.body.email) {
             return res.status(200).json({
-                success: false,
                 message: "The content body can not be empty."
             });
         }
         if (err) {
             console.log(err);
         }
+        if (info !== undefined) {
+            console.error(info.message);
+            res.status(403).send(info.message)
+        }
         else {
-            User.findOneAndUpdate({ email: user.email }, { email: req.body.newEmail })
-                .then(data => { return res.status(200).json({ success: true }); })
-                .catch(err => {
-                    return res.status(500).json({
-                        success: false,
-                        message: err
-                    })
-                })(req, res, next);
+            try {
+                await User.updateOne({ email: user.email }, { email: req.body.newEmail })
+            } catch (err) {
+                return res.status(500).json({
+                    message: err
+                })
+            }
+            await User.updateOne({ email: user.email }, { email: req.body.newEmail })
+            return res.status(200).json({ success: true });
         };
-    })
+    })(req, res, next);
 }
 
-exports.delete = (req, res) => {
-    User.deleteOne({ email: req.params.id }, (err, result) => {
+exports.delete = async (req, res) => {
+    await User.deleteOne({ email: req.params.id }, (err, result) => {
         if (err) res.status(404).json({
-            success: false,
             message: "The user is not found"
         })
         else {
@@ -177,17 +183,14 @@ exports.delete = (req, res) => {
     })
 }
 
-exports.deleteAll = (req, res) => {
-    User.deleteMany({}, (err, result) => {
-        if (err) {
-            res.status(404).json({
-                success: false,
-                message: err
-            })
-        } else {
-            res.status(200).json({ success: true, message: result });
-        }
-    })
+exports.deleteAll = async (req, res) => {
+    const { err, result } = await User.deleteMany({})
+    await Status.save()
+    if (err) {
+        res.status(404).json({ message: err })
+    } else {
+        res.status(200).json({ success: true, message: result });
+    }
 }
 
 exports.login = (req, res, next) => {
@@ -196,7 +199,6 @@ exports.login = (req, res, next) => {
             console.log(err);
         }
         if (info !== undefined) {
-            console.error(info.message);
             if (info.message === 'bad username') {
                 res.status(401).send(info.message);
             } else {
@@ -224,7 +226,6 @@ exports.register = (req, res, next) => {
             console.error(err);
         }
         if (info !== undefined) {
-            console.error(info.message);
             res.status(403).send(info.message);
         } else {
             // eslint-disable-next-line no-unused-vars

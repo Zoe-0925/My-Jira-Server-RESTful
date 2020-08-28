@@ -1,8 +1,8 @@
 const db = require("../models");
 const Project = db.projects
-const User = db.users
 const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose');
+const passport = require("passport")
 
 const validateId = (req, res) => {
     if (!req.params.id) {
@@ -14,39 +14,45 @@ const validateId = (req, res) => {
 }
 
 // Create and Save a new Tutorial
-exports.create = async (req, res) => {
-    // Validate request
-    if (!req.body.name) {
-        res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
+exports.create = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        // Validate request
+        if (!req.body.name) {
+            res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
 
-    // Create a project
-    const id = mongoose.Types.ObjectId();
-    const project = new Project({
-        _id: id,
-        name: req.body.name,
-        key: uuidv4(),
-        category: req.body.category || "",
-        lead: req.body.lead,
-        members: [req.body.lead],
-        image: req.body.image || "",
-        default_assignee: "Project Lead",
-    });
-    try {
-        let user = await User.findById(req.body.lead)
-        if (user) user.projects.push(id)
-        await project.save()
-        await user.save()
-        res.status(200).json({ success: true, id: id });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: err.message || "Some error occurred while creating the Project."
+        // Create a project
+        const id = mongoose.Types.ObjectId();
+        const project = new Project({
+            _id: id,
+            name: req.body.name,
+            key: uuidv4(),
+            category: req.body.category || "",
+            lead: user._id,
+            members: [user._id],
+            image: req.body.image || "",
+            default_assignee: "Project Lead",
         });
-    }
+        try {
+            user.projects.push(id)
+            await project.save()
+            await user.save()
+            res.status(200).json({ success: true, id: id });
+        } catch (err) {
+            res.status(500).json({
+                message: err.message || "Some error occurred while creating the Project."
+            });
+        }
+    })(req, res, next);
 }
 
 exports.findAll = (req, res) => {
@@ -56,93 +62,130 @@ exports.findAll = (req, res) => {
 }
 
 // Retrieve all projects involving a particular user
-exports.findByUserId = (req, res) => {
-    validateId(req, res)
-    Project.find({ members: req.params.id })
-        .then(data => {
-            return res.status(200).json({ success: true, data: data });
-        })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err.message || "Some error occurred while retrieving projects."
+exports.findByUserId = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        validateId(req, res)
+        Project.find({ members: req.params.id })
+            .then(data => {
+                return res.status(200).json({ success: true, data: data });
+            })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message || "Some error occurred while retrieving projects."
+                });
             });
-        });
+    })(req, res, next);
 }
 
 // Retrieve a single project with id
-exports.findOne = (req, res) => {
-    validateId(req, res)
-    Project.find({ key: req.params.id })
-        .then(data => {
-            res.status(200).json({ success: true, data: data });
-        }).catch(err => {
-            res.status(500).json({
-                success: false,
-                message: err.message || "Some error occurred while retrieving projects."
+exports.findOne = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        validateId(req, res)
+        Project.find({ key: req.params.id })
+            .then(data => {
+                res.status(200).json({ success: true, data: data });
+            }).catch(err => {
+                res.status(500).json({
+                    message: err.message || "Some error occurred while retrieving projects."
+                });
             });
-        });
+    })(req, res, next);
 }
 
 // Update a project by id from the database.
-exports.update = async (req, res) => {
-    validateId(req, res)
-    try {
-        const project = await Project.findByIdAndUpdate(req.params.id, req.body)
-        await project.save({
-            message: "Project was updated successfully."
-        })
-        res.status(200).json({ success: true });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: `Error updating Review with id=$(id), $(err)`
-        })
-    }
+exports.update = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        validateId(req, res)
+        try {
+            const project = await Project.findByIdAndUpdate(req.params.id, req.body)
+            await project.save({
+                message: "Project was updated successfully."
+            })
+            res.status(200).json({ success: true });
+        } catch (err) {
+            res.status(500).json({
+                message: `Error updating Review with id=$(id), $(err)`
+            })
+        }
+    })(req, res, next);
 }
 
 // Remove a member from a project by id.
-exports.removeMember = async (req, res) => {
-    // Validate request
-    if (!req.params.id || !req.params.userId) {
-        return res.status(200).json({
-            success: false,
-            message: "The content body can not be empty."
-        });
-    }
-    try {
-        const project = await Project.findById(req.params.id, req.body)
-        //If the member to be deleted is also the project lead, delete the project lead as well.
-        if (req.params.userId === project.c) {
-            project.lead = ""
+exports.removeMember = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
         }
-        project.members.filter(req.params.userId)
-        await project.save({
-            message: "Project was updated successfully."
-        })
-        res.status(200).json({ success: true })
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: `Could not update Project with id=$(id). Error:$(err) `
-        })
-    }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        // Validate request
+        if (!req.params.id || !req.params.userId) {
+            return res.status(200).json({
+                success: false,
+                message: "The content body can not be empty."
+            });
+        }
+        try {
+            const project = await Project.findById(req.params.id, req.body)
+            //If the member to be deleted is also the project lead, delete the project lead as well.
+            if (req.params.userId === project.lead) {
+                project.lead = ""
+            }
+            project.members.filter(req.params.userId)
+            await project.save({
+                message: "Project was updated successfully."
+            })
+            res.status(200).json({ success: true })
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: `Could not update Project with id=$(id). Error:$(err) `
+            })
+        }
+    })(req, res, next);
 }
 
-exports.delete = async (req, res) => {
-    if (!req.params.id) {
-        res.status(200).send({ success: true });
-    }
-    try {
-        const project = await Project.findByIdAndDelete(req.params.id)
-        if (!project) res.status(404).send("No item found")
-        res.status(200).send({ success: true })
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: `Could not delete Project with id=$(id). Error:$(err) `
-        })
-    }
+exports.delete = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        if (!req.params.id) {
+            res.status(200).send({ success: true });
+        }
+        try {
+            const project = await Project.findByIdAndDelete(req.params.id)
+            if (!project) res.status(404).send("No item found")
+            res.status(200).send({ success: true })
+        } catch (err) {
+            res.status(500).json({
+                message: `Could not delete Project with id=$(id). Error:$(err) `
+            })
+        }
+    })(req, res, next);
 }
 
 exports.deleteAll = async (req, res) => {
@@ -159,17 +202,24 @@ exports.deleteAll = async (req, res) => {
 }
 
 // Delete all Projects of a particular lead from the database.
-exports.deleteByLeadId = async (req, res) => {
-    try {
-        const project = await Project.deleteMany({ lead: req.params.id })
-        if (!project) res.status(404).send("No item found")
-        res.status(200).json({ success: true })
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: "Could not delete Projects"
-        })
-    }
-};
-
+exports.deleteByLeadId = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        try {
+            const project = await Project.deleteMany({ lead: req.params.id })
+            if (!project) res.status(404).send("No item found")
+            res.status(200).json({ success: true })
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: "Could not delete Projects"
+            })
+        }
+    })(req, res, next);
+}
 

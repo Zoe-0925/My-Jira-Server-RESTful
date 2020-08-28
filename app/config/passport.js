@@ -19,11 +19,9 @@ passport.use(
             session: false,
         },
         (req, username, password, done) => {
-            console.log("email", req.body.email);
             try {
                 User.findOne({ email: username }).then(user => {
                     if (user != null) {
-                        console.log('username already taken');
                         return done(null, false, { message: 'username already taken' });
                     }
                     bcrypt.hash(password, BCRYPT_SALT_ROUNDS).then(hashedPassword => {
@@ -36,7 +34,6 @@ passport.use(
                             projects: []
                         });
                         user.save().then(() => {
-                            console.log('user created');
                             // note the return needed with passport local - remove this return for passport JWT to work
                             return done(null, user);
                         });
@@ -65,10 +62,8 @@ passport.use(
                     } else {
                         bcrypt.compare(password, user.password).then(response => {
                             if (response !== true) {
-                                console.log('passwords do not match');
                                 return done(null, false, { message: 'Invalid username or password' });
                             }
-                            console.log('user found & authenticated');
                             // note the return needed with passport local - remove this return for passport JWT
                             return done(null, user);
                         });
@@ -90,13 +85,9 @@ const opts = {
 passport.use(
     'jwt',
     new JWTstrategy(opts, (jwt_payload, done) => {
-        console.log("jwt_payload",jwt_payload)
         try {
-            console.log("started")
             User.findOne({ email: jwt_payload.email }).then(user => {
-                console.log("authenticated")
                 if (user) {
-                    console.log('user found in db in passport');
                     // note the return removed with passport JWT - add this return for passport local
                     return done(null, user);
                 } else {
