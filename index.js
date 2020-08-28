@@ -40,7 +40,9 @@ app.use(cors({
 
 app.use(helmet());
 
+app.use(session({secret: 'sessionsecret'}));
 app.use(passport.initialize())
+app.use(passport.session());
 
 //app.use(helmet()); //security
 

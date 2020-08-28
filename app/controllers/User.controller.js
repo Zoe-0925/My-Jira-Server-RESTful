@@ -256,18 +256,19 @@ exports.redirectToGitHubLogin = (req, res, next) => {
     res.redirect(`https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}`);
 }
 
-exports.gitHubLogin = (req, res, next) => {
-    const body = {
-        client_id: env.GITHUB_CLIENT_ID,
-        client_secret: env.GITHUB_CLIENT_SECRET,
-        code: req.query.code
+exports.gitHubLogin = passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
+    //Save the user information into the session
+    req.session.user = {
+        _id: req.user.id,
+        name: req.user.displayName || req.user.username,
+        //   avatar: req.user._json.avatar_url,
+        provider: req.user.provider
     };
-    const opts = { headers: { accept: 'application/json' } };
-    axios.post(`https://github.com/login/oauth/access_token`, body, opts).
-        then(res => res.data['access_token']).
-        then(_token => {
-            token = _token;
-            res.json({ success: true });
-        }).
-        catch(err => res.status(500).json({ message: err.message }));
+    res.redirect('/');
+}
+
+
+exports.logOut = (req, res, next) => {
+    req.session.destroy();  //for git hub log in
+    res.redirect('/login');
 }

@@ -1,3 +1,5 @@
+const passport = require('passport')
+
 module.exports = app => {
     const users = require("../controllers/User.controller.js");
     var router = require("express").Router();
@@ -7,19 +9,11 @@ module.exports = app => {
 
     router.post("/login", users.login);
 
-    router.post("/login/github", users.redirectToGitHubLogin);
+    router.post("/login/github", passport.authenticate('github'));
 
     router.get('/auth/github/callback', users.gitHubLogin);
 
-    //TODO
-    //check req.logout()
-    router.post('/logout', (req, res) => {
-        //TODO change to get token.
-        req.logout();
-        //The server clears the state
-        //TODO the client redirects...
-        // res.redirect('/login');
-    });
+    router.post('/logout', users.logOut);
 
     // Retrieve all users
     router.get("/", users.findAll);
