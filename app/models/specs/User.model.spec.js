@@ -4,6 +4,9 @@ const db = require("../index");
 const User = db.users
 require("regenerator-runtime/runtime");
 
+//TODO add fail to create user as part of the required inputs are not complete
+//TODO add fail to read user with invalid query
+
 describe.skip('Users', () => {
     beforeAll(async () => {
         const url = `mongodb://127.0.0.1/my_database`

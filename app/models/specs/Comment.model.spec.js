@@ -9,6 +9,8 @@ const Project = db.projects
 require("regenerator-runtime/runtime");
 
 //TODO delete
+//TODO add fail to create comment as part of the required inputs are not complete
+//TODO add fail to read comment with invalid query
 
 describe.skip('Comments', () => {
     let userId =  mongoose.Types.ObjectId()
@@ -44,7 +46,7 @@ describe.skip('Comments', () => {
             project: projectId,
             summary: "test project summary",
             issueType: "task",
-            description: String,
+            description: "test description",
             status: statusId,
             assignee: userId,
             startDate: new Date(),
