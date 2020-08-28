@@ -252,4 +252,22 @@ exports.register = (req, res, next) => {
     })(req, res, next);
 }
 
+exports.redirectToGitHubLogin = (req, res, next) => {
+    res.redirect(`https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}`);
+}
 
+exports.gitHubLogin = (req, res, next) => {
+    const body = {
+        client_id: env.GITHUB_CLIENT_ID,
+        client_secret: env.GITHUB_CLIENT_SECRET,
+        code: req.query.code
+    };
+    const opts = { headers: { accept: 'application/json' } };
+    axios.post(`https://github.com/login/oauth/access_token`, body, opts).
+        then(res => res.data['access_token']).
+        then(_token => {
+            token = _token;
+            res.json({ success: true });
+        }).
+        catch(err => res.status(500).json({ message: err.message }));
+}

@@ -7,7 +7,9 @@ module.exports = (Schema, model) => {
         projects: [{
             type: Schema.Types.ObjectId,
             ref: "Project"
-        }]
+        }],
+        githubId: { type: String, default: "" },
+        
     });
     return model('User', UserSchema);
 }

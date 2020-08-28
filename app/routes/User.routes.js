@@ -7,6 +7,10 @@ module.exports = app => {
 
     router.post("/login", users.login);
 
+    router.post("/login/github", users.redirectToGitHubLogin);
+
+    router.get('/auth/github/callback', users.gitHubLogin);
+
     //TODO
     //check req.logout()
     router.post('/logout', (req, res) => {
