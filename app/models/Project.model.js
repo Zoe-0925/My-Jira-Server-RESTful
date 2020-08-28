@@ -1,9 +1,9 @@
 module.exports = (Schema, model) => {
     const ProjectSchema = new Schema({
-        _id:String,
+        _id: String,
         name: String,
         key: String,
-        category: String,
+        category: { type: String, default: '' },
         lead: {
             type: Schema.Types.ObjectId,
             ref: "User"
@@ -12,7 +12,7 @@ module.exports = (Schema, model) => {
             type: Schema.Types.ObjectId,
             ref: "User"
         }],
-        image: String,
+        image: { type: String, default: '' },
         issues: [{
             type: Schema.Types.ObjectId,
             ref: "Issue"

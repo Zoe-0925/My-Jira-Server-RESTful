@@ -1,15 +1,26 @@
 
 const mongoose = require('mongoose');
-const User = mongoose.model('User');
-
-process.env.TEST_SUITE = 'spacetime-systems-test';
+const db = require("../index");
+const User = db.users
+require("regenerator-runtime/runtime");
 
 describe('Users', () => {
+    beforeAll(async () => {
+        const url = `mongodb://127.0.0.1/my_database`
+        await mongoose.connect(url, { useNewUrlParser: true })
+    })
+
+    afterAll(done => {
+        return done();
+    });
+
     describe('CREATE', () => {
         let users;
 
         test('can create a user', async () => {
+            var id = mongoose.Types.ObjectId();
             await new User({
+                _id: id,
                 name: 'Sol',
                 email: 'white_star@gmail.com',
                 password: "11111111"
@@ -32,3 +43,10 @@ describe('Users', () => {
         let systems;
     });
 });
+
+/**
+ *
+ * A worker process has failed to exit gracefully and has been force exited.
+ * This is likely caused by tests leaking due to improper teardown.
+ * Try running with --runInBand --detectOpenHandles to find leaks.
+ */
