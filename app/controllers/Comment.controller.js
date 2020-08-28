@@ -10,38 +10,46 @@ const validateId = (req, res) => {
     }
 }
 
-exports.create = async (req, res) => {
-    // Validate request
-    if (!req.body.author || !req.body.project || !req.body.description || !req.body.issue) {
-        res.status(200).send({
-            message: "The content body can not be empty."
-        });
-        return;
-    }
+exports.create = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+        // Validate request
+        if (!req.body.author || !req.body.project || !req.body.description || !req.body.issue) {
+            res.status(200).send({
+                message: "The content body can not be empty."
+            });
+            return;
+        }
 
-    // Create a comment
-    const id = mongoose.Types.ObjectId();
-    const comment = new Comment({
-        _id: id,
-        project: req.body.project,
-        author: req.body.author,
-        description: req.body.description,
-        date: new Date(),
-        issue: req.body.issue,
-        parent: req.body.parent || ""
-    });
-    try {
-        await comment.save()
-        return res.status(200).json({
-            success: true,
-            id: comment._id
+        // Create a comment
+        const id = mongoose.Types.ObjectId();
+        const comment = new Comment({
+            _id: id,
+            project: req.body.project,
+            author: req.body.author,
+            description: req.body.description,
+            date: new Date(),
+            issue: req.body.issue,
+            parent: req.body.parent || ""
         });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err || "Some error occurred while creating the comment."
-        });
-    }
+        try {
+            await comment.save()
+            return res.status(200).json({
+                success: true,
+                id: comment._id
+            });
+        } catch (err) {
+            return res.status(500).json({
+                success: false,
+                message: err || "Some error occurred while creating the comment."
+            });
+        }
+    })(req, res, next);
 }
 
 // Retrieve all comments involving a particular user
@@ -62,26 +70,17 @@ exports.findAll = (req, res) => {
 }
 
 // Retrieve a single Comment with id
-exports.findOne = (req, res) => {
-    validateId(req, res);
-    Comment.find({ _id: req.params.id }).then(data => {
-        return res.status(200).json({
-            success: true,
-            data: data
-        });
-    }).catch(err => {
-        return res.status(500).json({
-            success: false,
-            message: err || "Some error occurred while retrieving Comments."
-        });
-    });
-}
+exports.findOne = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
 
-// Retrieve all Comments in a particular project
-exports.findForProject = (req, res) => {
-    validateId(req, res);
-    Comment.find({ project: req.params.id }).sort({ 'date': 'ascd' })
-        .then(data => {
+        validateId(req, res);
+        Comment.find({ _id: req.params.id }).then(data => {
             return res.status(200).json({
                 success: true,
                 data: data
@@ -92,55 +91,109 @@ exports.findForProject = (req, res) => {
                 message: err || "Some error occurred while retrieving Comments."
             });
         });
+    })(req, res, next);
 }
 
 // Retrieve all Comments in a particular project
-exports.findForIssue = (req, res) => {
-    validateId(req, res);
-    Comment.find({ issue: req.params.id }).sort({ 'date': 'ascd' })
-        .then(data => {
+exports.findForProject = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        validateId(req, res);
+        Comment.find({ project: req.params.id }).sort({ 'date': 'ascd' })
+            .then(data => {
+                return res.status(200).json({
+                    success: true,
+                    data: data
+                });
+            }).catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err || "Some error occurred while retrieving Comments."
+                });
+            });
+    })(req, res, next);
+}
+
+// Retrieve all Comments in a particular project
+exports.findForIssue = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        validateId(req, res);
+        Comment.find({ issue: req.params.id }).sort({ 'date': 'ascd' })
+            .then(data => {
+                return res.status(200).json({
+                    success: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err || "Some error occurred while retrieving Comments."
+                });
+            });
+    })(req, res, next);
+}
+
+exports.findChildren = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        validateId(req, res);
+        Comment.find({ parent: req.params.id }).sort({ 'date': 'ascd' })
+            .then(data => {
+                return res.status(200).json({
+                    success: true,
+                    data: data
+                });
+            })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err || "Some error occurred while retrieving Comments."
+                });
+            });
+    })(req, res, next);
+}
+
+exports.update = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        validateId(req, res);
+        Comment.findByIdAndUpdate(req.params.id).then(data => {
             return res.status(200).json({
                 success: true,
-                data: data
             });
-        })
-        .catch(err => {
+        }).catch(err => {
             return res.status(500).json({
                 success: false,
                 message: err || "Some error occurred while retrieving Comments."
             });
         });
-}
-
-exports.findChildren = (req, res) => {
-    validateId(req, res);
-    Comment.find({ parent: req.params.id }).sort({ 'date': 'ascd' })
-        .then(data => {
-            return res.status(200).json({
-                success: true,
-                data: data
-            });
-        })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while retrieving Comments."
-            });
-        });
-}
-
-exports.update = (req, res) => {
-    validateId(req, res);
-    Comment.findByIdAndUpdate(req.params.id).then(data => {
-        return res.status(200).json({
-            success: true,
-        });
-    }).catch(err => {
-        return res.status(500).json({
-            success: false,
-            message: err || "Some error occurred while retrieving Comments."
-        });
-    });
+    })(req, res, next);
 }
 
 // Delete all Comment
@@ -161,33 +214,51 @@ exports.deleteAll = (req, res) => {
 
 
 // Retrieve all Comments involving a particular user
-exports.delete = (req, res) => {
-    validateId(req, res);
-    Comment.findByIdAndDelete(req.params.id)
-        .then(data => {
-            return res.status(200).json({
-                success: true,
+exports.delete = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        validateId(req, res);
+        Comment.findByIdAndDelete(req.params.id)
+            .then(data => {
+                return res.status(200).json({
+                    success: true,
+                });
+            })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err || "Some error occurred while deleting Comment."
+                });
             });
-        })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while deleting Comment."
-            });
-        });
+    })(req, res, next);
 }
 
-exports.deleteByIssue = (req, res) => {
-    Comment.deleteMany({ issue: req.params.id })
-        .then(() => {
-            return res.status(200).json({
-                success: true,
+exports.deleteByIssue = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, async (err, user, info) => {
+        if (err) {
+            console.log(err);
+        }
+        if (info !== undefined) {
+            res.status(403).send(info.message);
+        }
+
+        Comment.deleteMany({ issue: req.params.id })
+            .then(() => {
+                return res.status(200).json({
+                    success: true,
+                });
+            })
+            .catch(err => {
+                return res.status(500).json({
+                    success: false,
+                    message: err || "Some error occurred while deleting Comment. "
+                });
             });
-        })
-        .catch(err => {
-            return res.status(500).json({
-                success: false,
-                message: err || "Some error occurred while deleting Comment. "
-            });
-        });
+    })(req, res, next);
 }
