@@ -3,7 +3,6 @@ module.exports = (Schema, model) => {
         _id: String,
         name: String,
         key: String,
-        category: { type: String, default: '' },
         lead: {
             type: Schema.Types.ObjectId,
             ref: "User"

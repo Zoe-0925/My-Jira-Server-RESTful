@@ -6,9 +6,8 @@ const BCRYPT_SALT_ROUNDS = 12;
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken');
 const jwtSecret = require('../config/jwtConfig');
-// , LocalStrategy = require('passport-local').Strategy;
+require("regenerator-runtime/runtime");
 
-// Create and Save a new Tutorial
 exports.create = async (req, res) => {
     // Validate request
     if (!req.body.name) {
@@ -253,20 +252,22 @@ exports.register = (req, res, next) => {
 }
 
 exports.redirectToGitHubLogin = (req, res, next) => {
-    res.redirect(`https://github.com/login/oauth/authorize?client_id=${env.GITHUB_CLIENT_ID}`);
+    res.redirect(`https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}`);
 }
 
 exports.gitHubLogin = passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
     //Save the user information into the session
+    /** 
     req.session.user = {
         _id: req.user.id,
         name: req.user.displayName || req.user.username,
         //   avatar: req.user._json.avatar_url,
         provider: req.user.provider
     };
+    */
+    //TODO where to save the user info???
     res.redirect('/');
 }
-
 
 exports.logOut = (req, res, next) => {
     req.session.destroy();  //for git hub log in

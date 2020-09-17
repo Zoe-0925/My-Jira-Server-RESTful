@@ -36,7 +36,6 @@ exports.create = (req, res, next) => {
             _id: id,
             name: req.body.name,
             key: uuidv4(),
-            category: req.body.category || "",
             lead: user._id,
             members: [user._id],
             image: req.body.image || "",
