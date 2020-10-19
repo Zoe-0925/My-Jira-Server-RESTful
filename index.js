@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 require('dotenv').config()  //Enable access to the ".env" file
 //** mongodb ORM and Database  */
 const mongoose = require('mongoose');
+const Pusher = require('pusher');
 /**-----------------Loggers------------ */
 const logger = require("./app/loggers/logger")
 const requestLogger = require("./app/loggers/requestLogger")
@@ -55,12 +56,6 @@ if (!db)
 else
   console.log("Db connected successfully")
 
-
-// simple route
-app.get("/", (req, res) => {
-  res.send("Hello World.");
-});
-
 //Routes
 require("./app/routes/Project.routes")(app);
 require("./app/routes/User.routes")(app);
@@ -75,6 +70,5 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT).on("listening", () => {
   logger.info(`Server is running on port ${PORT}.`);
 });
-
 
 module.exports = app

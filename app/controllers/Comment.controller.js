@@ -1,5 +1,12 @@
 const db = require("../models");
 const Comment = db.comments
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,
+    key: process.env.PUSHER_APP_KEY,
+    secret: process.env.PUSHER_APP_SECRET,
+    cluster: process.env.PUSHER_APP_CLUSTER,
+    useTLS: true,
+});
 
 const validateId = (req, res) => {
     if (!req.params.id) {
@@ -37,6 +44,9 @@ exports.create = (req, res, next) => {
         });
         try {
             await comment.save()
+            pusher.trigger('comments', 'new-comment', {
+                comment: comment,
+            });
             return res.status(200).json({
                 success: true,
                 id: comment._id

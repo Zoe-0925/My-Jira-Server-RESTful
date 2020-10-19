@@ -42,6 +42,12 @@ module.exports = (Schema, model) => {
                 type: Schema.Types.ObjectId,
                 ref: "Comment"
             }], default: []
+        },
+        created:{
+            type: Date, default: new Date()
+        },
+        updated:{
+            type: Date, default: new Date()
         }
     });
 
